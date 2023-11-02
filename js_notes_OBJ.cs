@@ -47,6 +47,7 @@ namespace MilishitaMacro {
             public string KeyboardLayout = "Chinese (simplified) -us keyboard";
         }
         public class_MetaData MetaData = new class_MetaData();
+        
         public class class_Primitive {
             [JsonProperty("$type", Order = 1)]
             public string type;
@@ -76,6 +77,9 @@ namespace MilishitaMacro {
             public string Key_alt1;
             [JsonProperty(Order = 6)]
             public bool ShowOnOverlay;
+
+            [JsonConstructor]
+            public class_Primitive_Tap() { type = "Tap, Bluestacks"; }
         }
         public class class_Primitive_Combo : class_Primitive {
             [JsonProperty(Order = 4)]
@@ -96,6 +100,9 @@ namespace MilishitaMacro {
             }
             [JsonProperty(Order = 6)]
             public class_Event[] Events;
+
+            [JsonConstructor]
+            public class_Primitive_Combo() { type = "Combo, Bluestacks"; }
         }
         public class class_Primitive_Zoom : class_Primitive {
             [JsonProperty(Order = 2)]
@@ -120,6 +127,9 @@ namespace MilishitaMacro {
             public int Mode;
             [JsonProperty(Order = 12)]
             public bool Override;
+
+            [JsonConstructor]
+            public class_Primitive_Zoom() { type = "Zoom, Bluestacks"; }
         }
         public class class_Primitive_Repeat : class_Primitive {
             [JsonProperty(Order = 2)]
@@ -136,9 +146,26 @@ namespace MilishitaMacro {
             public bool ShowOnOverlay;
             [JsonProperty(Order = 8)]
             public bool RepeatUntilKeyUp;
+
+            [JsonConstructor]
+            public class_Primitive_Repeat() { type = "TapRepeat, Bluestacks"; }
         }
-        public class_Primitive[] Primitives = {
-            /*new class_Primitive_Tap {
+        public class PrimitiveTypesBinder : Newtonsoft.Json.Serialization.ISerializationBinder {
+            public Type BindToType(string assemblyName, string typeName) {
+                if (typeName == "Tap") return typeof(class_Primitive_Tap);
+                if (typeName == "Combo") return typeof(class_Primitive_Combo);
+                if (typeName == "Zoom") return typeof(class_Primitive_Zoom);
+                if (typeName == "TapRepeat") return typeof(class_Primitive_Repeat);
+                return typeof(class_Primitive);
+            }
+            public void BindToName(Type serializedType, out string assemblyName, out string typeName) {
+                assemblyName = null;
+                typeName = null;
+            }
+        }
+        public class_Primitive[] Primitives = null;
+        /*{
+            new class_Primitive_Tap {
                 type = "Tap, Bluestacks",
                 X = 50.01,
                 Y = 50.01,
@@ -151,7 +178,7 @@ namespace MilishitaMacro {
                 Tags = new string[0],
                 EnableCondition = "",
                 IsVisibleInOverlay = true,
-            },*/
+            },
             new class_Primitive_Combo {
                 type = "Combo, Bluestacks",
                 Key ="Z",
@@ -232,13 +259,19 @@ namespace MilishitaMacro {
                 EnableCondition = "",
                 IsVisibleInOverlay = true
             }
-        };
+        };//*/
         public class class_Strings {
             public class class_UserDefined { }
             [JsonProperty("User-Defined")]
             public class_UserDefined UserDefined = new class_UserDefined();
         }
         public class_Strings Strings = new class_Strings();
+    }
+    class Js_ap_OBJ : object {
+        public Js_macro_OBJ.class_Primitive_Tap[] tap = new Js_macro_OBJ.class_Primitive_Tap[0];
+        public Js_macro_OBJ.class_Primitive_Zoom[] zoom = new Js_macro_OBJ.class_Primitive_Zoom[0];
+        public Js_macro_OBJ.class_Primitive_Repeat[] repeat = new Js_macro_OBJ.class_Primitive_Repeat[0];
+        public Js_macro_OBJ.class_Primitive_Combo[] combo = new Js_macro_OBJ.class_Primitive_Combo[0];
     }
 
     public class SongName : object {
@@ -466,7 +499,7 @@ namespace MilishitaMacro {
 
             switch (_type) {
                 default: break;
-                case 0:
+                case 0: //normal note
                     _e.Add(new Js_macro_OBJ.class_Primitive_Combo.class_Event {
                         Timestamp = _time,
                         X = _X,
@@ -482,9 +515,9 @@ namespace MilishitaMacro {
                         EventType = "MouseUp",
                     });
                     break;
-                case 1:
-                case 2:
-                case 3:
+                case 1: // left flip
+                case 2: // up flip
+                case 3: // right flip
                     _e.Add(new Js_macro_OBJ.class_Primitive_Combo.class_Event {
                         Timestamp = _time - 20,
                         X = _X,
@@ -535,7 +568,7 @@ namespace MilishitaMacro {
                         EventType = "MouseUp",
                     });
                     break;
-                case 4:
+                case 4: //strip start
                     _e.Add(new Js_macro_OBJ.class_Primitive_Combo.class_Event {
                         Timestamp = _time,
                         X = _X,
@@ -544,7 +577,7 @@ namespace MilishitaMacro {
                         EventType = "MouseDown",
                     });
                     break;
-                case 5:
+                case 5: //strip move
                     _e.Add(new Js_macro_OBJ.class_Primitive_Combo.class_Event {
                         Timestamp = _time,
                         X = _X,
@@ -553,7 +586,7 @@ namespace MilishitaMacro {
                         EventType = "MouseMove",
                     });
                     break;
-                case 6:
+                case 6: //strip end
                     _e.Add(new Js_macro_OBJ.class_Primitive_Combo.class_Event {
                         Timestamp = _time,
                         X = _X,
@@ -569,7 +602,7 @@ namespace MilishitaMacro {
                         EventType = "MouseUp",
                     });
                     break;
-                case 7:
+                case 7: // big note
                     _e.Add(new Js_macro_OBJ.class_Primitive_Combo.class_Event {
                         Timestamp = _time,
                         X = _d.x_center,
@@ -633,10 +666,11 @@ namespace MilishitaMacro {
         }
 
         static void PostProcessNotes(
-            ref List<Js_macro_OBJ.class_Primitive_Combo.class_Event> _e) {
+            ref List<Js_macro_OBJ.class_Primitive_Combo.class_Event> _e,
+            ref DiffName _d) {
             bool isDown;
             int previous_time, this_time;
-            double x_med, y_med, x_now = 0, y_now = 0, x_new, y_new;
+            double x_now = 0, y_now = 0;
 
             _e.Sort(new Js_macro_OBJ.class_Primitive_Combo.class_Event_comparer());
             isDown = false;
@@ -646,7 +680,7 @@ namespace MilishitaMacro {
                 this_time = _e[i0].Timestamp;
                 switch (_e[i0].EventType) {
                     default: break;
-                    case "MouseDown":
+                    case "MouseDown": //MouseDown when mouse is already down
                         if (isDown) {
                             if (previous_time + 1 < this_time) {
                                 _e.Insert(i0, new Js_macro_OBJ.class_Primitive_Combo.class_Event {
@@ -664,7 +698,7 @@ namespace MilishitaMacro {
                         x_now = _e[i0].X;
                         y_now = _e[i0].Y;
                         break;
-                    case "MouseUp":
+                    case "MouseUp": //MouseUp when mouse is not down
                         if (isDown) isDown = false;
                         else {
                             if (previous_time + 1 < this_time) {
@@ -683,37 +717,64 @@ namespace MilishitaMacro {
                             }
                         }
                         break;
-                    case "MouseMove":
-                        x_new = _e[i0].X;
-                        y_new = _e[i0].Y;
+                    case "MouseMove": //Oblique strip
+                        bool b_solo = _d.shortName == "2s" || _d.shortName == "2p";
+                        double xy_now = b_solo ? y_now : x_now;
+                        double xy_new = b_solo ? _e[i0].Y : _e[i0].X;
                         if (isDown) {
-                            if (x_new != x_now || y_new != y_now) {
-                                for (int i1 = previous_time; (i1 = i1 + 10) < this_time;) {
-                                    x_med = Math.Round(x_now + (i1 - previous_time) * (x_new - x_now) / (this_time - previous_time), 2);
-                                    y_med = Math.Round(y_now + (i1 - previous_time) * (y_new - y_now) / (this_time - previous_time), 2);
-                                    _e.Insert(i0, new Js_macro_OBJ.class_Primitive_Combo.class_Event {
-                                        Timestamp = i1,
-                                        X = x_med,
-                                        Y = y_med,
-                                        Delta = 0,
-                                        EventType = "MouseMove",
-                                    });
-                                    ++i0;
+                            if (xy_new != xy_now) {
+                                double nxy_now, nxy_new;
+                                DiffName.GetPos gxy = b_solo ? _d.GetY : _d.GetX;
+                                double xy_med;
+
+                                nxy_now = 0;
+                                for (double i = 5.5; (i -= 0.5) > 0;) if (gxy(i - 0.5) <= xy_now) {
+                                    if (gxy(i - 0.5) + gxy(i) <= xy_now * 2) nxy_now = i;
+                                    else nxy_now = i - 0.5;
+                                    break;
                                 }
+                                
+                                for (int i1 = previous_time; (i1 = i1 + 10) < this_time;) {
+                                    xy_med = Math.Round(xy_now + (i1 - previous_time) * (xy_new - x_now) / (this_time - previous_time), 2);
+
+                                    nxy_new = 0;
+                                    for (double i = 5.5; (i -= 0.5) > 0;) if (gxy(i - 0.5) <= xy_med) {
+                                        if (gxy(i - 0.5) + gxy(i) <= xy_med * 2) nxy_new = i;
+                                        else nxy_new = i - 0.5;
+                                        break;
+                                    }
+
+                                    if (nxy_now != nxy_new) {
+                                        _e.Insert(i0, new Js_macro_OBJ.class_Primitive_Combo.class_Event {
+                                            Timestamp = i1,
+                                            X = b_solo ? x_now : gxy(nxy_new),
+                                            Y = b_solo ? gxy(nxy_new) : y_now,
+                                            Delta = 0,
+                                            EventType = "MouseMove",
+                                        });
+                                        nxy_now = nxy_new;
+                                        ++i0;
+                                    }
+                                }
+                            }
+                            
+                            if (i0 > 0 && _e[i0 - 1].X == _e[i0].X && _e[i0 - 1].Y == _e[i0].Y) {
+                                _e.RemoveAt(i0);
+                                --i0;
                             }
                         }
                         else {
                             isDown = true;
                             _e[i0].EventType = "MouseDown";
                         }
-                        x_now = x_new;
-                        y_now = y_new;
+                        if (b_solo) y_now = xy_new;
+                        else x_now = xy_new;
                         break;
                 }
                 previous_time = this_time;
             }
 
-            //Every key event makes a strange delay, roughly 3/4 milisec
+            //Every key event makes a strange delay depending on the PC performance
             for (int i0 = 1, n_delay = 0; i0 < _e.Count; ++i0) {
                 switch(_e[i0].EventType)
                 {
@@ -734,11 +795,12 @@ namespace MilishitaMacro {
 
         static void PostProcessMacro(
             ref Js_macro_OBJ _m,
-            List<Js_macro_OBJ.class_Primitive_Combo.class_Event>[] _es) {
+            List<Js_macro_OBJ.class_Primitive_Combo.class_Event>[] _es,
+            ref DiffName _d) {
             int time_init, time_exit;
 
-            PostProcessNotes(ref _es[0]);
-            PostProcessNotes(ref _es[1]);
+            PostProcessNotes(ref _es[0], ref _d);
+            PostProcessNotes(ref _es[1], ref _d);
 
             {
                 int i0, i1, i2, i3;
@@ -864,7 +926,7 @@ namespace MilishitaMacro {
                 }
             }
 
-            PostProcessMacro(ref _macros, events);
+            PostProcessMacro(ref _macros, events, ref _diff);
         }
 
         static public void ConvertMacro(
@@ -884,7 +946,7 @@ namespace MilishitaMacro {
                 InsertNoteMacroFromString(events, _score[i0], ref _diff);
             }
             
-            PostProcessMacro(ref _macros, events);
+            PostProcessMacro(ref _macros, events, ref _diff);
         }
 
         static public void MacroToString(

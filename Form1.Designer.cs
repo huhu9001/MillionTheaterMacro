@@ -38,10 +38,16 @@
             this.textb_SongName = new System.Windows.Forms.TextBox();
             this.button_ToMacros = new System.Windows.Forms.Button();
             this.text_Score = new System.Windows.Forms.TextBox();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.lb_reworkF = new System.Windows.Forms.Label();
             this.combo_difficulty = new System.Windows.Forms.ComboBox();
+            this.tb_reworkF = new System.Windows.Forms.TextBox();
+            this.b_reworkBrowse = new System.Windows.Forms.Button();
+            this.b_reworkAp = new System.Windows.Forms.Button();
             this.tabC_main.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
             // output_000
@@ -69,6 +75,7 @@
             // 
             this.tabC_main.Controls.Add(this.tabPage1);
             this.tabC_main.Controls.Add(this.tabPage2);
+            this.tabC_main.Controls.Add(this.tabPage3);
             this.tabC_main.Location = new System.Drawing.Point(12, 16);
             this.tabC_main.Name = "tabC_main";
             this.tabC_main.SelectedIndex = 0;
@@ -204,6 +211,29 @@
             this.text_Score.Size = new System.Drawing.Size(468, 235);
             this.text_Score.TabIndex = 0;
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.b_reworkAp);
+            this.tabPage3.Controls.Add(this.b_reworkBrowse);
+            this.tabPage3.Controls.Add(this.tb_reworkF);
+            this.tabPage3.Controls.Add(this.lb_reworkF);
+            this.tabPage3.Location = new System.Drawing.Point(4, 28);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(511, 348);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "Rework";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // lb_reworkF
+            // 
+            this.lb_reworkF.AutoSize = true;
+            this.lb_reworkF.Location = new System.Drawing.Point(13, 18);
+            this.lb_reworkF.Name = "lb_reworkF";
+            this.lb_reworkF.Size = new System.Drawing.Size(143, 18);
+            this.lb_reworkF.TabIndex = 0;
+            this.lb_reworkF.Text = "Working Folder:";
+            // 
             // combo_difficulty
             // 
             this.combo_difficulty.DisplayMember = "displayName";
@@ -213,6 +243,33 @@
             this.combo_difficulty.Name = "combo_difficulty";
             this.combo_difficulty.Size = new System.Drawing.Size(165, 26);
             this.combo_difficulty.TabIndex = 10;
+            // 
+            // tb_reworkF
+            // 
+            this.tb_reworkF.Location = new System.Drawing.Point(16, 54);
+            this.tb_reworkF.Name = "tb_reworkF";
+            this.tb_reworkF.Size = new System.Drawing.Size(368, 28);
+            this.tb_reworkF.TabIndex = 2;
+            // 
+            // b_reworkBrowse
+            // 
+            this.b_reworkBrowse.Location = new System.Drawing.Point(390, 54);
+            this.b_reworkBrowse.Name = "b_reworkBrowse";
+            this.b_reworkBrowse.Size = new System.Drawing.Size(100, 28);
+            this.b_reworkBrowse.TabIndex = 3;
+            this.b_reworkBrowse.Text = "browse...";
+            this.b_reworkBrowse.UseVisualStyleBackColor = true;
+            this.b_reworkBrowse.Click += new System.EventHandler(this.b_reworkBrowse_Click);
+            // 
+            // b_reworkAp
+            // 
+            this.b_reworkAp.Location = new System.Drawing.Point(21, 108);
+            this.b_reworkAp.Name = "b_reworkAp";
+            this.b_reworkAp.Size = new System.Drawing.Size(173, 30);
+            this.b_reworkAp.TabIndex = 4;
+            this.b_reworkAp.Text = "Update Appendage";
+            this.b_reworkAp.UseVisualStyleBackColor = true;
+            this.b_reworkAp.Click += new System.EventHandler(this.b_reworkAp_Click);
             // 
             // form_main
             // 
@@ -230,6 +287,8 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
+            this.tabPage3.ResumeLayout(false);
+            this.tabPage3.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -253,6 +312,11 @@
         private System.Windows.Forms.Button b_ass;
         private System.Windows.Forms.Button b_SaveTXT;
         private System.Windows.Forms.Button b_LoadText;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.Label lb_reworkF;
+        private System.Windows.Forms.TextBox tb_reworkF;
+        private System.Windows.Forms.Button b_reworkBrowse;
+        private System.Windows.Forms.Button b_reworkAp;
     }
 }
 
