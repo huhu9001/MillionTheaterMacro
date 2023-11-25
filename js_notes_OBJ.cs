@@ -290,12 +290,22 @@ namespace MilishitaMacro {
         public readonly string urlName;
         public readonly string shortName;
 
-        public delegate double GetPos(double x);
-        public readonly GetPos GetX, GetY;
+        public readonly bool isSolo;
+        public readonly int nChannels;
 
-        private readonly double middle;
+        public readonly Func<double, double> GetX, GetY;
+        public double GetXYReverse(double x) {
+            for(int i1 = nChannels; --i1 > 0;) for (int i2 = 0; i2 < 3; ++i2) {
+                if (isSolo ? GetY(i1 - (double)i2 / 3) >= x : GetX(i1 - (double)i2 / 3) <= x) {
+                    if (i2 == 2) return i1 - 0.5;
+                    else return i1;
+                }
+            }
+            return 0;
+        }
+        
         public bool IsLeft(double x1) {
-            return x1 <= middle;
+            return x1 <= (double)(nChannels - 1) / 2;
         }
 
         public readonly double[] x_flick, y_flick;
@@ -320,12 +330,6 @@ namespace MilishitaMacro {
         private static double _Get_6b(double x) {
             return Math.Round(19.3 + 12.25 * x, 2);
         }
-        private static bool _IsLeft(double x1, double x2) {
-            return x1 <= 50.0;
-        }
-        private static bool _IsLeft_solo(double x1, double x2) {
-            return x2 <= 50.0;
-        }
 
         public DiffName(int __indexDiff) {
             switch (__indexDiff) {
@@ -334,7 +338,8 @@ namespace MilishitaMacro {
                     displayName = "2 Mix (solo)";
                     urlName = "0";
                     shortName = "2s";
-                    middle = 0.5;
+                    isSolo = true;
+                    nChannels = 2;
                     GetX = _Get_f_solo;
                     GetY = _Get_2b_solo;
                     x_flick = new double[] { 0, 0, -5, 0 };
@@ -346,7 +351,8 @@ namespace MilishitaMacro {
                     displayName = "2 Mix+ (solo)";
                     urlName = "1";
                     shortName = "2p";
-                    middle = 0.5;
+                    isSolo = true;
+                    nChannels = 2;
                     GetX = _Get_f_solo;
                     GetY = _Get_2b_solo;
                     x_flick = new double[] { 0, 0, -5, 0 };
@@ -358,7 +364,8 @@ namespace MilishitaMacro {
                     displayName = "2 Mix";
                     urlName = "0";
                     shortName = "2m";
-                    middle = 0.5;
+                    isSolo = false;
+                    nChannels = 2;
                     GetX = _Get_2b;
                     GetY = _Get_f;
                     x_flick = new double[] { 0, -1, 0, 1 };
@@ -370,7 +377,8 @@ namespace MilishitaMacro {
                     displayName = "4 Mix";
                     urlName = "2";
                     shortName = "4m";
-                    middle = 1.5;
+                    isSolo = false;
+                    nChannels = 4;
                     GetX = _Get_4b;
                     GetY = _Get_f;
                     x_flick = new double[] { 0, -1, 0, 1 };
@@ -382,7 +390,8 @@ namespace MilishitaMacro {
                     displayName = "6 Mix";
                     urlName = "3";
                     shortName = "6m";
-                    middle = 2.5;
+                    isSolo = false;
+                    nChannels = 6;
                     GetX = _Get_6b;
                     GetY = _Get_f;
                     x_flick = new double[] { 0, -1, 0, 1 };
@@ -394,7 +403,8 @@ namespace MilishitaMacro {
                     displayName = "Million Mix";
                     urlName = "4";
                     shortName = "mm";
-                    middle = 2.5;
+                    isSolo = false;
+                    nChannels = 6;
                     GetX = _Get_6b;
                     GetY = _Get_f;
                     x_flick = new double[] { 0, -1, 0, 1 };
@@ -718,37 +728,29 @@ namespace MilishitaMacro {
                         }
                         break;
                     case "MouseMove": //Oblique strip
-                        bool b_solo = _d.shortName == "2s" || _d.shortName == "2p";
-                        double xy_now = b_solo ? y_now : x_now;
-                        double xy_new = b_solo ? _e[i0].Y : _e[i0].X;
+                        double xy_now, xy_new;
+                        if (_d.isSolo) {
+                            xy_now = y_now;
+                            y_now = xy_new = _e[i0].Y;
+                        }
+                        else {
+                            xy_now = x_now;
+                            x_now = xy_new = _e[i0].X;
+                        }
                         if (isDown) {
                             if (xy_new != xy_now) {
-                                double nxy_now, nxy_new;
-                                DiffName.GetPos gxy = b_solo ? _d.GetY : _d.GetX;
-                                double xy_med;
-
-                                nxy_now = 0;
-                                for (double i = 5.5; (i -= 0.5) > 0;) if (gxy(i - 0.5) <= xy_now) {
-                                    if (gxy(i - 0.5) + gxy(i) <= xy_now * 2) nxy_now = i;
-                                    else nxy_now = i - 0.5;
-                                    break;
-                                }
+                                double nxy_now = _d.GetXYReverse(xy_now);
                                 
                                 for (int i1 = previous_time; (i1 = i1 + 10) < this_time;) {
-                                    xy_med = Math.Round(xy_now + (i1 - previous_time) * (xy_new - x_now) / (this_time - previous_time), 2);
+                                    double xy_med = Math.Round(xy_now + (i1 - previous_time) * (xy_new - xy_now) / (this_time - previous_time), 2);
 
-                                    nxy_new = 0;
-                                    for (double i = 5.5; (i -= 0.5) > 0;) if (gxy(i - 0.5) <= xy_med) {
-                                        if (gxy(i - 0.5) + gxy(i) <= xy_med * 2) nxy_new = i;
-                                        else nxy_new = i - 0.5;
-                                        break;
-                                    }
+                                    double nxy_new = _d.GetXYReverse(xy_med);
 
                                     if (nxy_now != nxy_new) {
                                         _e.Insert(i0, new Js_macro_OBJ.class_Primitive_Combo.class_Event {
                                             Timestamp = i1,
-                                            X = b_solo ? x_now : gxy(nxy_new),
-                                            Y = b_solo ? gxy(nxy_new) : y_now,
+                                            X = _d.GetX(nxy_new),
+                                            Y = _d.GetY(nxy_new),
                                             Delta = 0,
                                             EventType = "MouseMove",
                                         });
@@ -767,8 +769,6 @@ namespace MilishitaMacro {
                             isDown = true;
                             _e[i0].EventType = "MouseDown";
                         }
-                        if (b_solo) y_now = xy_new;
-                        else x_now = xy_new;
                         break;
                 }
                 previous_time = this_time;
@@ -944,6 +944,27 @@ namespace MilishitaMacro {
 
             for (int i0 = 0; i0 < _score.Length; ++ i0) {
                 InsertNoteMacroFromString(events, _score[i0], ref _diff);
+            }
+            
+            PostProcessMacro(ref _macros, events, ref _diff);
+        }
+
+        static public void ConvertMacro(
+            ref Js_macro_OBJ _macros,
+            ref System.IO.StreamReader _score,
+            string _song_name,
+            ref DiffName _diff) {
+            ((Js_macro_OBJ.class_Primitive_Combo)_macros.Primitives[0]).Description = _song_name + "_" + _diff.shortName + " (left)";
+            ((Js_macro_OBJ.class_Primitive_Combo)_macros.Primitives[1]).Description = _song_name + "_" + _diff.shortName + " (right)";
+
+            List<Js_macro_OBJ.class_Primitive_Combo.class_Event>[] events = {
+                        new List<Js_macro_OBJ.class_Primitive_Combo.class_Event>(0x400),
+                        new List<Js_macro_OBJ.class_Primitive_Combo.class_Event>(0x400),
+                    };
+
+            string scoreLine;
+            while ((scoreLine = _score.ReadLine()) != null) {
+                InsertNoteMacroFromString(events, scoreLine, ref _diff);
             }
             
             PostProcessMacro(ref _macros, events, ref _diff);

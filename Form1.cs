@@ -60,7 +60,7 @@ namespace MilishitaMacro {
             combo_difficulty.SelectedIndex = 5;
 
             try {
-                StreamReader saved_songs = new StreamReader(new FileStream("songs.txt", FileMode.Open));
+                StreamReader saved_songs = new StreamReader(new FileStream("songs.txt", FileMode.Open, FileAccess.Read));
                 int songs_size = int.Parse(saved_songs.ReadLine());
                 songs = new SongName[songs_size];
                 {
@@ -80,7 +80,7 @@ namespace MilishitaMacro {
 
             try
             {
-                StreamReader saved_dirs = new StreamReader(new FileStream("dirs.txt", FileMode.Open));
+                StreamReader saved_dirs = new StreamReader(new FileStream("dirs.txt", FileMode.Open, FileAccess.Read));
                 dir_TXT = new dir(saved_dirs.ReadLine());
                 dir_ASS = new dir(saved_dirs.ReadLine());
                 dir_CFG[0] = new dir(saved_dirs.ReadLine());
@@ -103,7 +103,7 @@ namespace MilishitaMacro {
             }
 
             try {
-                StreamReader file_ap = new StreamReader(new FileStream("ap.json", FileMode.Open));
+                StreamReader file_ap = new StreamReader(new FileStream("ap.json", FileMode.Open, FileAccess.Read));
                 js_appendage = JsonConvert.DeserializeObject<Js_ap_OBJ>(file_ap.ReadToEnd());
                 file_ap.Close();
             }
@@ -367,7 +367,7 @@ namespace MilishitaMacro {
                 try {
                     Match m_u;
                     List<string> s_ass = new List<string>();
-                    StreamReader sr_ass = new StreamReader(new FileStream(d_load.FileName, FileMode.Open));
+                    StreamReader sr_ass = new StreamReader(new FileStream(d_load.FileName, FileMode.Open, FileAccess.Read));
                     for(; !sr_ass.EndOfStream; ) {
                         m_u = Regex.Match(sr_ass.ReadLine(), "(?:Dialogue|Comment):[^,]*,([^,]*),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)");
                         if (m_u.Success) {
@@ -410,6 +410,17 @@ namespace MilishitaMacro {
             }
         }
 
+        private void textScore_Change(object sender, EventArgs e) {
+            if (text_Score.Text == "") {
+                b_SaveTXT.Text = "Save TXT";
+                button_ToMacros.Text = "To Macros";
+            }
+            else {
+                b_SaveTXT.Text = "Save TXT*";
+                button_ToMacros.Text = "To Macros*";
+            }
+        }
+
         private void button_FromMacros_Click(object sender, EventArgs e) {
             if (js_notes == null) {
                 MessageBox.Show("Notes data is not loaded.");
@@ -444,7 +455,7 @@ namespace MilishitaMacro {
                 {
                     Match m_u;
                     List<string> s_ass = new List<string>();
-                    StreamReader sr_ass = new StreamReader(new FileStream(d_load.FileName, FileMode.Open));
+                    StreamReader sr_ass = new StreamReader(new FileStream(d_load.FileName, FileMode.Open, FileAccess.Read));
                     text_Score.Text = sr_ass.ReadToEnd();
                     sr_ass.Close();
 
@@ -516,32 +527,80 @@ namespace MilishitaMacro {
 
         private void b_reworkAp_Click(object sender, EventArgs e) {
             uint count_success = 0, count_failure = 0;
+            bool isOlder = cb_old.Checked;
+            bool isApOnly = sender == b_reworkAp;
+
             Task t = new Task(() => {
                 foreach (string f_cfg in Directory.GetFiles(tb_reworkF.Text, "*.cfg", SearchOption.AllDirectories)) {
                     try {
-                        StreamReader fr = new StreamReader(new FileStream(f_cfg, FileMode.Open));
-                        Js_macro_OBJ js_macro_old = JsonConvert.DeserializeObject<Js_macro_OBJ>(fr.ReadToEnd(), new JsonSerializerSettings {
-                            TypeNameHandling = TypeNameHandling.All,
-                            SerializationBinder = new Js_macro_OBJ.PrimitiveTypesBinder(),
-                        });
-                        js_macro.Primitives[0] = js_macro_old.Primitives[0];
-                        js_macro.Primitives[1] = js_macro_old.Primitives[1];
+                        if (isOlder && new FileInfo(f_cfg).LastWriteTime >= mc_old.SelectionStart) continue;
+                        if (isApOnly) {
+                            StreamReader fr = new StreamReader(new FileStream(f_cfg, FileMode.Open, FileAccess.Read));
+                            Js_macro_OBJ js_macro_old = JsonConvert.DeserializeObject<Js_macro_OBJ>(fr.ReadToEnd(), new JsonSerializerSettings {
+                                TypeNameHandling = TypeNameHandling.All,
+                                SerializationBinder = new Js_macro_OBJ.PrimitiveTypesBinder(),
+                            });
+                            js_macro.Primitives[0] = js_macro_old.Primitives[0];
+                            js_macro.Primitives[1] = js_macro_old.Primitives[1];
+                            fr.Close();
+                        }
+                        else {
+                            string filename = Path.GetFileNameWithoutExtension(f_cfg);
+                            string songname = filename.Substring(0, filename.Length - 3);
+                            DiffName diff;
+                            switch (filename.Substring(filename.Length - 2)) {
+                                default:
+                                    diff = diffs[5];
+                                    songname = filename;
+                                    break;
+                                case "2s":
+                                    diff = diffs[0]; break;
+                                case "2p":
+                                    diff = diffs[1]; break;
+                                case "2m":
+                                    diff = diffs[2]; break;
+                                case "4m":
+                                    diff = diffs[3]; break;
+                                case "6m":
+                                    diff = diffs[4]; break;
+                                case "mm":
+                                    diff = diffs[5]; break;
+                            }
+                            StreamReader fr = new StreamReader(new FileStream(dir_TXT + "\\" + filename + ".txt", FileMode.Open, FileAccess.Read));
+                            Converter_NotesMacro.ConvertMacro(
+                            ref js_macro,
+                            ref fr,
+                            songname,
+                            ref diff);
+                            fr.Close();
+                        }
 
-                        fr.Close();
                         StreamWriter fw = new StreamWriter(new FileStream(f_cfg, FileMode.Create));
                         fw.Write(JsonConvert.SerializeObject(js_macro));
                         fw.Close();
 
                         ++count_success;
                     }
+                    catch (FileNotFoundException) { }
                     catch (Exception err) {
-                        MessageBox.Show(err.Message);
+                        Invoke(new Action(() => { output_000.Text += "\r\n" + err.Message; }));
                         ++count_failure;
+                        if (count_failure > 4) break;
                     }
                 }
-                MessageBox.Show("Updated " + count_success + " files, " + count_failure + " failed.");
+                Invoke(new Action(() => { output_000.Text += "\r\nUpdated " + count_success + " files, " + count_failure + " failed."; }));
             });
+
+            output_000.Text = "Start reworking...";
+            b_rework.Enabled = false;
+            b_reworkAp.Enabled = false;
+            cb_old.Enabled = false;
+            mc_old.Enabled = false;
             t.Start();
+            b_rework.Enabled = true;
+            b_reworkAp.Enabled = true;
+            cb_old.Enabled = true;
+            mc_old.Enabled = true;
         }
 
         private void b_reworkBrowse_Click(object sender, EventArgs e) {
