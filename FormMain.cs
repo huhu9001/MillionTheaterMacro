@@ -1,62 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using System.Net;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using Newtonsoft.Json;
 
-
 namespace MilishitaMacro {
-    public partial class form_main : Form {
-
+    public partial class FormMain : Form {
         SongName[] songs;
-        DiffName[] diffs = {
-                new DiffName(0),
-                new DiffName(1),
-                new DiffName(2),
-                new DiffName(3),
-                new DiffName(4),
-                new DiffName(5),
-        };
-        int index_song_selected;
-        int index_diff_selected;
-        string name_save;
-        Js_notes_OBJ js_notes;
-        Js_macro_OBJ js_macro;
-        Js_ap_OBJ js_appendage;
+        JsonAppendage appendage;
 
-        class dir {
-            public dir() { my_dir = ""; }
-            public dir(string new_dir) { my_dir = new_dir; }
-            public static implicit operator string(dir d_this) { return d_this.my_dir; }
-            public void Set(string new_dir) {
-                if (my_dir != new_dir) {
-                    changed = true;
-                    my_dir = new_dir;
-                }
-            }
-
-            string my_dir;
-            public static bool changed;
-        }
-
-        dir dir_TXT, dir_ASS;
-        dir[] dir_CFG = new dir[6];
+        string dir_TXT, dir_ASS;
+        string[] dir_CFG = new string[6];
 
         bool b_changed_songname;
+        bool settings_changed;
 
-        public form_main() {
+        public FormMain() {
             InitializeComponent();
-            combo_difficulty.DataSource = diffs;
+
+            combo_ver.DataSource = CodecSettings.versions;
+            combo_ver.DisplayMember = "name";
+            combo_ver.SelectedIndex = 0;
+
+            combo_difficulty.DataSource = CodecSettings.diffs;
+            combo_difficulty.DisplayMember = "displayName";
             combo_difficulty.SelectedIndex = 5;
 
             try {
@@ -75,40 +48,50 @@ namespace MilishitaMacro {
                 saved_songs.Close();
                 combo_SongName.DataSource = songs;
                 button_Download.Enabled = true;
+                
             }
-            catch (Exception) { }
+            catch (Exception) { songs = new SongName[0]; }
+            b_changed_songname = false;
 
-            try
-            {
-                StreamReader saved_dirs = new StreamReader(new FileStream("dirs.txt", FileMode.Open, FileAccess.Read));
-                dir_TXT = new dir(saved_dirs.ReadLine());
-                dir_ASS = new dir(saved_dirs.ReadLine());
-                dir_CFG[0] = new dir(saved_dirs.ReadLine());
-                dir_CFG[1] = new dir(saved_dirs.ReadLine());
-                dir_CFG[2] = new dir(saved_dirs.ReadLine());
-                dir_CFG[3] = new dir(saved_dirs.ReadLine());
-                dir_CFG[4] = new dir(saved_dirs.ReadLine());
-                dir_CFG[5] = new dir(saved_dirs.ReadLine());
+            try {
+                StreamReader saved_dirs = new StreamReader(new FileStream("settings.ini", FileMode.Open, FileAccess.Read));
+                string txt_ini = saved_dirs.ReadToEnd();
                 saved_dirs.Close();
+                Match m;
+                dir_TXT = (m = Regex.Match(txt_ini, @"^\s*dirTXT\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                dir_ASS = (m = Regex.Match(txt_ini, @"^\s*dirASS\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                dir_CFG[0] = (m = Regex.Match(txt_ini, @"^\s*dirCFG2S\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                dir_CFG[1] = (m = Regex.Match(txt_ini, @"^\s*dirCFG2P\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                dir_CFG[2] = (m = Regex.Match(txt_ini, @"^\s*dirCFG2M\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                dir_CFG[3] = (m = Regex.Match(txt_ini, @"^\s*dirCFG4M\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                dir_CFG[4] = (m = Regex.Match(txt_ini, @"^\s*dirCFG6M\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                dir_CFG[5] = (m = Regex.Match(txt_ini, @"^\s*dirCFGMM\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                int ParseIntOr(string s, int def) { try { return int.Parse(s); } catch (Exception) { return def; } }
+                combo_ver.SelectedIndex = (m = Regex.Match(txt_ini, @"^\s*verMacro\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? ParseIntOr(m.Groups[1].Value, 0) : 0;
+                num_downNum.Value = (m = Regex.Match(txt_ini, @"^\s*delayClick\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? ParseIntOr(m.Groups[1].Value, 0) : 0;
+                num_moveNum.Value = (m = Regex.Match(txt_ini, @"^\s*delayMove\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? ParseIntOr(m.Groups[1].Value, 0) : 0;
+                num_Den.Value = (m = Regex.Match(txt_ini, @"^\s*delayDen\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? ParseIntOr(m.Groups[1].Value, 1) : 1;
+                num_nCmdScpt.Value = (m = Regex.Match(txt_ini, @"^\s*nCmdScpt\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? ParseIntOr(m.Groups[1].Value, 0) : 0;
             }
             catch(Exception) {
-                if (dir_TXT == null) dir_TXT = new dir();
-                if (dir_ASS == null) dir_ASS = new dir();
-                if (dir_CFG[0] == null) dir_CFG[0] = new dir();
-                if (dir_CFG[1] == null) dir_CFG[1] = new dir();
-                if (dir_CFG[2] == null) dir_CFG[2] = new dir();
-                if (dir_CFG[3] == null) dir_CFG[3] = new dir();
-                if (dir_CFG[4] == null) dir_CFG[4] = new dir();
-                if (dir_CFG[5] == null) dir_CFG[5] = new dir();
+                dir_TXT = "";
+                dir_ASS = "";
+                dir_CFG[0] = "";
+                dir_CFG[1] = "";
+                dir_CFG[2] = "";
+                dir_CFG[3] = "";
+                dir_CFG[4] = "";
+                dir_CFG[5] = "";
             }
+            settings_changed = false;
 
             try {
                 StreamReader file_ap = new StreamReader(new FileStream("ap.json", FileMode.Open, FileAccess.Read));
-                js_appendage = JsonConvert.DeserializeObject<Js_ap_OBJ>(file_ap.ReadToEnd());
+                appendage = JsonConvert.DeserializeObject<JsonAppendage>(file_ap.ReadToEnd());
                 file_ap.Close();
             }
             catch (FileNotFoundException) {
-                js_appendage = new Js_ap_OBJ();
+                appendage = new JsonAppendage();
                 try {
                     StreamWriter file_ap = new StreamWriter(new FileStream("ap.json", FileMode.Create));
                     file_ap.WriteLine("{");
@@ -122,49 +105,11 @@ namespace MilishitaMacro {
                 catch (Exception) { }
             }
             catch (Exception err) {
-                js_appendage = new Js_ap_OBJ();
+                appendage = new JsonAppendage();
                 MessageBox.Show("Loading appendage JSON error, please check ap.json in the program directory: " + err.Message);
             }
-            
-            js_macro = new Js_macro_OBJ();
-            js_macro.Primitives = new Js_macro_OBJ.class_Primitive[
-                js_appendage.tap.Length + js_appendage.zoom.Length + js_appendage.repeat.Length + js_appendage.combo.Length + 2
-            ];
-            js_macro.Primitives[0] = new Js_macro_OBJ.class_Primitive_Combo {
-                type = "Combo, Bluestacks",
-                Key = "Z",
-
-                Type = "Combo",
-                Guidance = { },
-                GuidanceCategory = "MISC",
-                Tags = { },
-                EnableCondition = "",
-                IsVisibleInOverlay = false,
-
-                Description = null,
-                Events = null,
-            };
-            js_macro.Primitives[1] = new Js_macro_OBJ.class_Primitive_Combo {
-                type = "Combo, Bluestacks",
-                Key = "Z",
-
-                Type = "Combo",
-                Guidance = { },
-                GuidanceCategory = "MISC",
-                Tags = { },
-                EnableCondition = "",
-                IsVisibleInOverlay = false,
-
-                Description = null,
-                Events = null,
-            };
-            js_appendage.tap.CopyTo(js_macro.Primitives, 2);
-            js_appendage.zoom.CopyTo(js_macro.Primitives, 2 + js_appendage.tap.Length);
-            js_appendage.repeat.CopyTo(js_macro.Primitives, 2 + js_appendage.tap.Length + js_appendage.zoom.Length);
-            js_appendage.combo.CopyTo(js_macro.Primitives, 2 + js_appendage.tap.Length + js_appendage.zoom.Length + js_appendage.repeat.Length);
-
-            b_changed_songname = false;
-            dir.changed = false;
+            if (appendage.tap.Length == 0 && appendage.zoom.Length == 0 && appendage.repeat.Length == 0 && appendage.combo.Length != 0)
+                appendage.tap = new JsonAppendage.Tap[] { new JsonAppendage.Tap(25, 25, "") };
         }
         
         private void form_main_FormClosing(object sender, FormClosingEventArgs e) {
@@ -180,50 +125,90 @@ namespace MilishitaMacro {
             }
             catch (Exception) { }
 
-            if (dir.changed) try
-            {
-                StreamWriter saved_dirs = new StreamWriter(new FileStream("dirs.txt", FileMode.Create));
-                saved_dirs.WriteLine(dir_TXT);
-                saved_dirs.WriteLine(dir_ASS);
-                saved_dirs.WriteLine(dir_CFG[0]);
-                saved_dirs.WriteLine(dir_CFG[1]);
-                saved_dirs.WriteLine(dir_CFG[2]);
-                saved_dirs.WriteLine(dir_CFG[3]);
-                saved_dirs.WriteLine(dir_CFG[4]);
-                saved_dirs.WriteLine(dir_CFG[5]);
-                saved_dirs.Close();
+            if (settings_changed) try {
+                    StreamWriter saved_dirs = new StreamWriter(new FileStream("settings.ini", FileMode.Create));
+                    string s;
+                    if ((s = dir_TXT.Trim()) != "") saved_dirs.WriteLine("dirTXT=" + s);
+                    if ((s = dir_ASS.Trim()) != "") saved_dirs.WriteLine("dirASS=" + s);
+                    if ((s = dir_CFG[0].Trim()) != "") saved_dirs.WriteLine("dirCFG2S=" + s);
+                    if ((s = dir_CFG[1].Trim()) != "") saved_dirs.WriteLine("dirCFG2P=" + s);
+                    if ((s = dir_CFG[2].Trim()) != "") saved_dirs.WriteLine("dirCFG2M=" + s);
+                    if ((s = dir_CFG[3].Trim()) != "") saved_dirs.WriteLine("dirCFG4M=" + s);
+                    if ((s = dir_CFG[4].Trim()) != "") saved_dirs.WriteLine("dirCFG6M=" + s);
+                    if ((s = dir_CFG[5].Trim()) != "") saved_dirs.WriteLine("dirCFGMM=" + s);
+                    if (combo_ver.SelectedIndex > 0) saved_dirs.WriteLine("verMacro=" + combo_ver.SelectedIndex);
+                    if (num_downNum.Value > 0) saved_dirs.WriteLine("delayClick=" + num_downNum.Value);
+                    if (num_moveNum.Value > 0) saved_dirs.WriteLine("delayMove=" + num_moveNum.Value);
+                    if (num_Den.Value > 1) saved_dirs.WriteLine("delayDen=" + num_Den.Value);
+                    if (num_nCmdScpt.Value > 0) saved_dirs.WriteLine("nCmdScpt=" + num_nCmdScpt.Value);
+                    saved_dirs.Close();
             }
             catch (Exception) { }
         }
 
         private void button_Save_Click(object sender, EventArgs e) {
+            int index_diff_selected;
+            if ((index_diff_selected = combo_difficulty.SelectedIndex) == -1) return;
+            string name_save = textb_SongName.Text + '_' + CodecSettings.diffs[index_diff_selected].shortName + ".cfg";
             SaveFileDialog d_save = new SaveFileDialog {
                 FileName = name_save,
                 Filter = "CFG files (*.cfg)|*.cfg|All files (*.*)|*.*",
                 InitialDirectory = dir_CFG[index_diff_selected],
             };
             if (d_save.ShowDialog() == DialogResult.OK) {
-                dir_CFG[index_diff_selected].Set(Path.GetDirectoryName(d_save.FileName));
+                string dir_new = Path.GetDirectoryName(d_save.FileName);
+                if (dir_CFG[index_diff_selected] != dir_new) {
+                    settings_changed = true; dir_CFG[index_diff_selected] = dir_new;
+                }
+                
+                int n_con = appendage.tap.Length + appendage.zoom.Length + appendage.repeat.Length + appendage.combo.Length + 2;
+                CodecSettings settings = new CodecSettings(
+                    ((MacroVersion)combo_ver.SelectedItem).value,
+                    index_diff_selected,
+                    Convert.ToInt32(num_nCmdScpt.Value),
+                    Convert.ToInt32(num_downNum.Value),
+                    Convert.ToInt32(num_moveNum.Value),
+                    Convert.ToInt32(num_Den.Value));
+
+                string output;
+                switch (settings.version) {
+                    default: output_000.Text += "Macro version error."; return;
+                    case (int)MacroVersion.Value.BluestacksParser13:
+                        output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV13(
+                            text_Score.Lines,
+                            appendage,
+                            textb_SongName.Text,
+                            ref settings));
+                        break;
+                    case (int)MacroVersion.Value.BluestacksParser17:
+                        output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV17(
+                            text_Score.Lines,
+                            appendage,
+                            textb_SongName.Text,
+                            ref settings));
+                        break;
+                }
+
                 try {
                     StreamWriter sw_save = new StreamWriter(new FileStream(d_save.FileName, FileMode.Create));
-                    sw_save.Write(JsonConvert.SerializeObject(js_macro));
+                    sw_save.Write(output);
                     sw_save.Close();
-
-                    button_Save.Text = "Save";
                 }
                 catch (Exception err) {
-                    output_000.Text += "\r\n" + err.Message;
+                    output_000.Text += err.Message;
                 }
+                
+                button_Save.Text = "Save";
             }
         }
 
         private void button_Download_Click(object sender, EventArgs e) {
+            int index_song_selected, index_diff_selected;
             if ((index_song_selected = combo_SongName.SelectedIndex) == -1) return;
             if ((index_diff_selected = combo_difficulty.SelectedIndex) == -1) return;
             button_Download.Enabled = false;
             button_Save.Enabled = false;
-            button_FromMacros.Enabled = false;
-            name_save = songs[index_song_selected].fullName + "_" + diffs[index_diff_selected].shortName + ".cfg";
+            textb_SongName.Text = songs[index_song_selected].fullName;
             
             output_000.Text = "";
             Task t = new Task(() => {
@@ -231,14 +216,14 @@ namespace MilishitaMacro {
                     HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/musics/" +
                         songs[index_song_selected].urlName +
                         "/" +
-                        diffs[index_diff_selected].urlName);
+                        CodecSettings.diffs[index_diff_selected].urlName);
                     xhr.Method = "GET";
 
-                    Invoke(new Action(() => { output_000.Text += "Connecting... "; }));
+                    Invoke(new Action(() => { output_000.Text += "Connecting... " + Environment.NewLine; }));
 
                     HttpWebResponse xhrr = xhr.GetResponse() as HttpWebResponse;
 
-                    Invoke(new Action(() => { output_000.Text += "Success.\r\nProcessingText..."; }));
+                    Invoke(new Action(() => { output_000.Text += "Success." + Environment.NewLine + "ProcessingText..." + Environment.NewLine; }));
 
                     StreamReader sr = new StreamReader(xhrr.GetResponseStream());
                     string string_sr = sr.ReadToEnd();
@@ -249,69 +234,34 @@ namespace MilishitaMacro {
 
                     string_sr = Regex.Replace(m_u.Value, "&quot;", "\"");
 
-                    Invoke(new Action(() => { output_000.Text += "Success.\r\nParsingJSON..."; }));
+                    Invoke(new Action(() => { output_000.Text += "Success." + Environment.NewLine + "ParsingJSON..." + Environment.NewLine; }));
 
-                    js_notes = JsonConvert.DeserializeObject<Js_notes_OBJ>(string_sr);
-
-                    Converter_NotesMacro.ConvertMacro(
-                        ref js_macro,
-                        ref js_notes,
-                        ref songs[index_song_selected],
-                        ref diffs[index_diff_selected]);
+                    JsonScoreMltd js_notes = JsonConvert.DeserializeObject<JsonScoreMltd>(string_sr);
+                    StringBuilder strb = new StringBuilder();
+                    foreach (string line in MacroCodec.FromScoreMltd(js_notes, index_diff_selected)) {
+                        strb.Append(line);
+                        strb.Append(Environment.NewLine);
+                    }
+                    text_Score.Text = strb.ToString();
 
                     Invoke(new Action(() => {
                         output_000.Text += "Success.";
                         button_Save.Enabled = true;
                         button_Download.Enabled = true;
-                        button_FromMacros.Enabled = true;
 
                         button_Save.Text = "Save*";
-                        b_SaveTXT.Text = "Save TXT";
-                        button_ToMacros.Text = "To Macros";
+                        b_SaveTXT.Text = "Save TXT*";
+                        tabC_main.SelectedIndex = 0;
                     }));
                 }
                 catch (Exception err) {
-                    Invoke(new Action(() => { output_000.Text += "\r\n" + err.Message; }));
-                    button_Download.Enabled = true;
+                    Invoke(new Action(() => {
+                        output_000.Text += err.Message;
+                        button_Download.Enabled = true;
+                    }));
                 }
             });
             t.Start();
-        }
-
-        private void button_ToMacros_Click(object sender, EventArgs e) {
-            if ((index_diff_selected = combo_difficulty.SelectedIndex) == -1) return;
-            name_save = textb_SongName.Text + "_" + diffs[index_diff_selected].shortName + ".cfg";
-
-            if (MessageBox.Show(
-                "The current difficulty is \"" + diffs[index_diff_selected].displayName + "\". Sure?",
-                "Confirm",
-                MessageBoxButtons.OKCancel) == DialogResult.Cancel) return;
-
-            button_ToMacros.Enabled = false;
-            button_Save.Enabled = false;
-            button_FromMacros.Enabled = false;
-
-            output_000.Text = "Processing...";
-
-            try {
-                Converter_NotesMacro.ConvertMacro(
-                ref js_macro,
-                text_Score.Lines,
-                textb_SongName.Text,
-                ref diffs[index_diff_selected]);
-
-                MessageBox.Show("Done.");
-                output_000.Text += "Done.";
-                button_ToMacros.Enabled = true;
-                button_Save.Enabled = true;
-
-                button_ToMacros.Text = "To Macros";
-                button_Save.Text = "Save*";
-            }
-            catch (Exception err) {
-                output_000.Text += "\r\n" + err.Message;
-                button_ToMacros.Enabled = true;
-            }
         }
 
         private void button_updateSong_Click(object sender, EventArgs e) {
@@ -322,11 +272,11 @@ namespace MilishitaMacro {
                     HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/");
                     xhr.Method = "GET";
                     
-                    Invoke(new Action(() => { output_000.Text += "Connecting... "; }));
+                    Invoke(new Action(() => { output_000.Text += "Connecting... " + Environment.NewLine; }));
                     
                     string string_sr = new StreamReader(((HttpWebResponse)xhr.GetResponse()).GetResponseStream()).ReadToEnd();
 
-                    Invoke(new Action(() => { output_000.Text += "Success.\r\nProcessingText..."; }));
+                    Invoke(new Action(() => { output_000.Text += "Success." + Environment.NewLine + "ProcessingText..." + Environment.NewLine; }));
 
                     Match m_u = Regex.Match(string_sr, "(?<=<ul id=\"musiclist\" class=\"list\">)[\\s\\S]*?(?=</ul>)");
                     if (!m_u.Success) throw new Exception("Songs information is not found.");
@@ -350,7 +300,7 @@ namespace MilishitaMacro {
                 }
                 catch(Exception err) {
                     Invoke(new Action(() => {
-                        output_000.Text += "\r\n" + err.Message;
+                        output_000.Text += err.Message;
                         button_updateSong.Enabled = true;
                     }));
                 }
@@ -363,7 +313,8 @@ namespace MilishitaMacro {
                 InitialDirectory = dir_ASS,
             };
             if (d_load.ShowDialog() == DialogResult.OK) {
-                dir_ASS.Set(Path.GetDirectoryName(d_load.FileName));
+                string dir_new = Path.GetDirectoryName(d_load.FileName);
+                if (dir_ASS != dir_new) { settings_changed = true; dir_ASS = dir_new; }
                 try {
                     Match m_u;
                     List<string> s_ass = new List<string>();
@@ -400,9 +351,8 @@ namespace MilishitaMacro {
                         }
                     }
 
-                    button_Save.Text = "Save";
+                    button_Save.Text = "Save*";
                     b_SaveTXT.Text = "Save TXT*";
-                    button_ToMacros.Text = "To Macros*";
                 }
                 catch (Exception err) {
                     output_000.Text += "\r\n" + err.Message;
@@ -413,44 +363,23 @@ namespace MilishitaMacro {
         private void textScore_Change(object sender, EventArgs e) {
             if (text_Score.Text == "") {
                 b_SaveTXT.Text = "Save TXT";
-                button_ToMacros.Text = "To Macros";
+                button_Save.Text = "Save";
             }
             else {
                 b_SaveTXT.Text = "Save TXT*";
-                button_ToMacros.Text = "To Macros*";
-            }
-        }
-
-        private void button_FromMacros_Click(object sender, EventArgs e) {
-            if (js_notes == null) {
-                MessageBox.Show("Notes data is not loaded.");
-                return;
-            }
-
-            try {
-                List<string> ss = new List<string>(0x400);
-                Converter_NotesMacro.MacroToString(ref ss, ref js_notes);
-                text_Score.Text = string.Join("\r\n", ss);
-                textb_SongName.Text = songs[index_song_selected].urlName;
-                combo_difficulty.SelectedIndex = index_diff_selected;
-
-                tabC_main.SelectedIndex = 1;
-            }
-            catch (Exception err) {
-                output_000.Text += "\r\n" + err.Message;
+                button_Save.Text = "Save*";
             }
         }
 
         private void b_LoadText_Click(object sender, EventArgs e)
         {
-            OpenFileDialog d_load = new OpenFileDialog
-            {
+            OpenFileDialog d_load = new OpenFileDialog {
                 Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*",
                 InitialDirectory = dir_TXT,
             };
-            if (d_load.ShowDialog() == DialogResult.OK)
-            {
-                dir_TXT.Set(Path.GetDirectoryName(d_load.FileName));
+            if (d_load.ShowDialog() == DialogResult.OK) {
+                string dir_new = Path.GetDirectoryName(d_load.FileName);
+                if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
                 try
                 {
                     Match m_u;
@@ -482,9 +411,8 @@ namespace MilishitaMacro {
                         }
                     }
 
-                    button_Save.Text = "Save";
+                    button_Save.Text = "Save*";
                     b_SaveTXT.Text = "Save TXT";
-                    button_ToMacros.Text = "To Macros*";
                 }
                 catch (Exception err)
                 {
@@ -495,8 +423,7 @@ namespace MilishitaMacro {
 
         private void b_SaveTXT_Click(object sender, EventArgs e)
         {
-            SaveFileDialog d_save = new SaveFileDialog
-            {
+            SaveFileDialog d_save = new SaveFileDialog {
                 FileName = textb_SongName.Text + (
                     combo_difficulty.SelectedIndex == 0 ? "_2s" :
                     combo_difficulty.SelectedIndex == 1 ? "_2p" :
@@ -507,20 +434,18 @@ namespace MilishitaMacro {
                 Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*",
                 InitialDirectory = dir_TXT,
             };
-            if (d_save.ShowDialog() == DialogResult.OK)
-            {
-                dir_TXT.Set(Path.GetDirectoryName(d_save.FileName));
-                try
-                {
+            if (d_save.ShowDialog() == DialogResult.OK) {
+                string dir_new = Path.GetDirectoryName(d_save.FileName);
+                if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
+                try {
                     StreamWriter sw_save = new StreamWriter(new FileStream(d_save.FileName, FileMode.Create));
                     sw_save.Write(text_Score.Text);
                     sw_save.Close();
 
                     b_SaveTXT.Text = "Save TXT";
                 }
-                catch (Exception err)
-                {
-                    output_000.Text += "\r\n" + err.Message;
+                catch (Exception err) {
+                    output_000.Text += err.Message;
                 }
             }
         }
@@ -529,20 +454,46 @@ namespace MilishitaMacro {
             uint count_success = 0, count_failure = 0;
             bool isOlder = cb_old.Checked;
             bool isApOnly = sender == b_reworkAp;
+            CodecSettings settings = new CodecSettings(
+                ((MacroVersion)combo_ver.SelectedItem).value,
+                combo_difficulty.SelectedIndex,
+                Convert.ToInt32(num_nCmdScpt.Value),
+                Convert.ToInt32(num_downNum.Value),
+                Convert.ToInt32(num_moveNum.Value),
+                Convert.ToInt32(num_Den.Value));
 
             Task t = new Task(() => {
                 foreach (string f_cfg in Directory.GetFiles(tb_reworkF.Text, "*.cfg", SearchOption.AllDirectories)) {
                     try {
+                        string so;
+
                         if (isOlder && new FileInfo(f_cfg).LastWriteTime >= mc_old.SelectionStart) continue;
                         if (isApOnly) {
                             StreamReader fr = new StreamReader(new FileStream(f_cfg, FileMode.Open, FileAccess.Read));
-                            Js_macro_OBJ js_macro_old = JsonConvert.DeserializeObject<Js_macro_OBJ>(fr.ReadToEnd(), new JsonSerializerSettings {
-                                TypeNameHandling = TypeNameHandling.All,
-                                SerializationBinder = new Js_macro_OBJ.PrimitiveTypesBinder(),
-                            });
-                            js_macro.Primitives[0] = js_macro_old.Primitives[0];
-                            js_macro.Primitives[1] = js_macro_old.Primitives[1];
+                            string si = fr.ReadToEnd();
                             fr.Close();
+
+                            switch (settings.version) {
+                                default: continue;
+                                case (int)MacroVersion.Value.BluestacksParser13: {
+                                        JsonMacroBs13 macro = JsonConvert.DeserializeObject<JsonMacroBs13>(si, new JsonSerializerSettings {
+                                            TypeNameHandling = TypeNameHandling.All,
+                                            SerializationBinder = new JsonMacroBs13.PrimitiveTypesBinder(),
+                                        });
+                                        macro.Primitives = MacroCodec.ChangeAppendage(macro.Primitives, appendage);
+                                        so = JsonConvert.SerializeObject(macro);
+                                    }
+                                    break;
+                                case (int)MacroVersion.Value.BluestacksParser17: {
+                                        JsonMacroBs17 macro = JsonConvert.DeserializeObject<JsonMacroBs17>(si, new JsonSerializerSettings {
+                                            TypeNameHandling = TypeNameHandling.All,
+                                            SerializationBinder = new JsonMacroBs17.class_ControlSchemes.GameControlsTypesBinder(),
+                                        });
+                                        macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(macro.ControlSchemes[0].GameControls, appendage);
+                                        so = JsonConvert.SerializeObject(macro);
+                                    }
+                                    break;
+                            }
                         }
                         else {
                             string filename = Path.GetFileNameWithoutExtension(f_cfg);
@@ -550,33 +501,46 @@ namespace MilishitaMacro {
                             DiffName diff;
                             switch (filename.Substring(filename.Length - 2)) {
                                 default:
-                                    diff = diffs[5];
+                                    diff = CodecSettings.diffs[5];
                                     songname = filename;
                                     break;
                                 case "2s":
-                                    diff = diffs[0]; break;
+                                    diff = CodecSettings.diffs[0]; break;
                                 case "2p":
-                                    diff = diffs[1]; break;
+                                    diff = CodecSettings.diffs[1]; break;
                                 case "2m":
-                                    diff = diffs[2]; break;
+                                    diff = CodecSettings.diffs[2]; break;
                                 case "4m":
-                                    diff = diffs[3]; break;
+                                    diff = CodecSettings.diffs[3]; break;
                                 case "6m":
-                                    diff = diffs[4]; break;
+                                    diff = CodecSettings.diffs[4]; break;
                                 case "mm":
-                                    diff = diffs[5]; break;
+                                    diff = CodecSettings.diffs[5]; break;
                             }
+
                             StreamReader fr = new StreamReader(new FileStream(dir_TXT + "\\" + filename + ".txt", FileMode.Open, FileAccess.Read));
-                            Converter_NotesMacro.ConvertMacro(
-                            ref js_macro,
-                            ref fr,
-                            songname,
-                            ref diff);
-                            fr.Close();
+                            IEnumerable<string> RL(TextReader tr) {
+                                while (tr.Peek() != -1) yield return tr.ReadLine();
+                            }
+                            switch (settings.version) {
+                                default: fr.Close(); continue;
+                                case (int)MacroVersion.Value.BluestacksParser13: {
+                                        JsonMacroBs13 macro = MacroCodec.ConvertMacroV13(RL(fr), appendage, songname, ref settings);
+                                        fr.Close();
+                                        so = JsonConvert.SerializeObject(macro);
+                                    }
+                                    break;
+                                case (int)MacroVersion.Value.BluestacksParser17: {
+                                        JsonMacroBs17 macro = MacroCodec.ConvertMacroV17(RL(fr), appendage, songname, ref settings);
+                                        fr.Close();
+                                        so = JsonConvert.SerializeObject(macro);
+                                    }
+                                    break;
+                            }
                         }
 
                         StreamWriter fw = new StreamWriter(new FileStream(f_cfg, FileMode.Create));
-                        fw.Write(JsonConvert.SerializeObject(js_macro));
+                        fw.Write(so);
                         fw.Close();
 
                         ++count_success;
@@ -588,10 +552,12 @@ namespace MilishitaMacro {
                         if (count_failure > 4) break;
                     }
                 }
-                Invoke(new Action(() => { output_000.Text += "\r\nUpdated " + count_success + " files, " + count_failure + " failed."; }));
+                Invoke(new Action(() => {
+                    output_000.Text += "Updated " + count_success + " files, " + count_failure + " failed.";
+                }));
             });
 
-            output_000.Text = "Start reworking...";
+            output_000.Text = "Start reworking..." + Environment.NewLine;
             b_rework.Enabled = false;
             b_reworkAp.Enabled = false;
             cb_old.Enabled = false;
@@ -609,5 +575,7 @@ namespace MilishitaMacro {
                 tb_reworkF.Text = d_load.SelectedPath;
             }
         }
+
+        private void SettingControlsChanged(object sender, EventArgs e) { settings_changed = true; }
     }
 }
