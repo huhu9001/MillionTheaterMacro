@@ -123,9 +123,9 @@ namespace MilishitaMacro {
                     Key_alt1 = "";
 
                     MacroCommand[] event_sorted = (MacroCommand[])j.Events.Clone();
-                    Array.Sort(event_sorted, new Comparison<MacroCommand>((c1, c2) => {
+                    Array.Sort(event_sorted, (c1, c2) => {
                         return c1.time - c2.time;
-                    }));
+                    });
                     List<string> o = new List<string>(event_sorted.Length * 2);
                     int time_prev = 0;
                     foreach (MacroCommand c in event_sorted) {

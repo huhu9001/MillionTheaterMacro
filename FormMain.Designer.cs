@@ -45,26 +45,27 @@
             this.tb_reworkF = new System.Windows.Forms.TextBox();
             this.lb_reworkF = new System.Windows.Forms.Label();
             this.tab_Settings = new System.Windows.Forms.TabPage();
-            this.num_nCmdScpt = new System.Windows.Forms.NumericUpDown();
-            this.lb_divSpt = new System.Windows.Forms.Label();
             this.combo_ver = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.gb_delays = new System.Windows.Forms.GroupBox();
+            this.lb_desyncOffset = new System.Windows.Forms.Label();
+            this.num_nCmdScpt = new System.Windows.Forms.NumericUpDown();
             this.num_moveNum = new System.Windows.Forms.NumericUpDown();
+            this.lb_divSpt = new System.Windows.Forms.Label();
             this.lb_delayMove = new System.Windows.Forms.Label();
             this.num_Den = new System.Windows.Forms.NumericUpDown();
             this.lb_divSign = new System.Windows.Forms.Label();
             this.lb_delayDown = new System.Windows.Forms.Label();
             this.num_downNum = new System.Windows.Forms.NumericUpDown();
             this.combo_difficulty = new System.Windows.Forms.ComboBox();
-            this.lb_desyncOffset = new System.Windows.Forms.Label();
+            this.pgbar_main = new System.Windows.Forms.ProgressBar();
             this.tabC_main.SuspendLayout();
             this.tab_editor.SuspendLayout();
             this.tab_Hyrorre.SuspendLayout();
             this.tab_Rework.SuspendLayout();
             this.tab_Settings.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.num_nCmdScpt)).BeginInit();
             this.gb_delays.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.num_nCmdScpt)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_moveNum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_Den)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_downNum)).BeginInit();
@@ -79,11 +80,12 @@
             this.output_000.Name = "output_000";
             this.output_000.ReadOnly = true;
             this.output_000.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.output_000.Size = new System.Drawing.Size(232, 298);
+            this.output_000.Size = new System.Drawing.Size(232, 258);
             this.output_000.TabIndex = 0;
             // 
             // button_Save
             // 
+            this.button_Save.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button_Save.Location = new System.Drawing.Point(546, 54);
             this.button_Save.Name = "button_Save";
             this.button_Save.Size = new System.Drawing.Size(110, 34);
@@ -94,6 +96,9 @@
             // 
             // tabC_main
             // 
+            this.tabC_main.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabC_main.Controls.Add(this.tab_editor);
             this.tabC_main.Controls.Add(this.tab_Hyrorre);
             this.tabC_main.Controls.Add(this.tab_Rework);
@@ -154,6 +159,8 @@
             // 
             // textb_SongName
             // 
+            this.textb_SongName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textb_SongName.Location = new System.Drawing.Point(20, 15);
             this.textb_SongName.Name = "textb_SongName";
             this.textb_SongName.Size = new System.Drawing.Size(468, 28);
@@ -162,8 +169,9 @@
             // 
             // text_Score
             // 
-            this.text_Score.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
+            this.text_Score.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.text_Score.Location = new System.Drawing.Point(20, 53);
             this.text_Score.Multiline = true;
             this.text_Score.Name = "text_Score";
@@ -209,6 +217,8 @@
             // 
             // combo_SongName
             // 
+            this.combo_SongName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.combo_SongName.DisplayMember = "fullName";
             this.combo_SongName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.combo_SongName.FormattingEnabled = true;
@@ -258,9 +268,6 @@
             // 
             // mc_old
             // 
-            this.mc_old.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.mc_old.Location = new System.Drawing.Point(154, 81);
             this.mc_old.MaxSelectionCount = 1;
             this.mc_old.Name = "mc_old";
@@ -290,6 +297,8 @@
             // 
             // tb_reworkF
             // 
+            this.tb_reworkF.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tb_reworkF.Location = new System.Drawing.Point(156, 15);
             this.tb_reworkF.Name = "tb_reworkF";
             this.tb_reworkF.Size = new System.Drawing.Size(343, 28);
@@ -315,25 +324,10 @@
             this.tab_Settings.TabIndex = 0;
             this.tab_Settings.Text = "Settings";
             // 
-            // num_nCmdScpt
-            // 
-            this.num_nCmdScpt.Location = new System.Drawing.Point(327, 122);
-            this.num_nCmdScpt.Name = "num_nCmdScpt";
-            this.num_nCmdScpt.Size = new System.Drawing.Size(120, 28);
-            this.num_nCmdScpt.TabIndex = 8;
-            this.num_nCmdScpt.ValueChanged += new System.EventHandler(this.SettingControlsChanged);
-            // 
-            // lb_divSpt
-            // 
-            this.lb_divSpt.AutoSize = true;
-            this.lb_divSpt.Location = new System.Drawing.Point(7, 124);
-            this.lb_divSpt.Name = "lb_divSpt";
-            this.lb_divSpt.Size = new System.Drawing.Size(314, 18);
-            this.lb_divSpt.TabIndex = 4;
-            this.lb_divSpt.Text = "Command num each script (0 = INF):";
-            // 
             // combo_ver
             // 
+            this.combo_ver.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.combo_ver.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.combo_ver.FormattingEnabled = true;
             this.combo_ver.Location = new System.Drawing.Point(105, 15);
@@ -353,6 +347,8 @@
             // 
             // gb_delays
             // 
+            this.gb_delays.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.gb_delays.Controls.Add(this.lb_desyncOffset);
             this.gb_delays.Controls.Add(this.num_nCmdScpt);
             this.gb_delays.Controls.Add(this.num_moveNum);
@@ -369,6 +365,23 @@
             this.gb_delays.TabStop = false;
             this.gb_delays.Text = "Desynchronization management";
             // 
+            // lb_desyncOffset
+            // 
+            this.lb_desyncOffset.AutoSize = true;
+            this.lb_desyncOffset.Location = new System.Drawing.Point(7, 24);
+            this.lb_desyncOffset.Name = "lb_desyncOffset";
+            this.lb_desyncOffset.Size = new System.Drawing.Size(269, 18);
+            this.lb_desyncOffset.TabIndex = 9;
+            this.lb_desyncOffset.Text = "Desync offset (num / den ms):";
+            // 
+            // num_nCmdScpt
+            // 
+            this.num_nCmdScpt.Location = new System.Drawing.Point(327, 122);
+            this.num_nCmdScpt.Name = "num_nCmdScpt";
+            this.num_nCmdScpt.Size = new System.Drawing.Size(120, 28);
+            this.num_nCmdScpt.TabIndex = 8;
+            this.num_nCmdScpt.ValueChanged += new System.EventHandler(this.SettingControlsChanged);
+            // 
             // num_moveNum
             // 
             this.num_moveNum.Location = new System.Drawing.Point(119, 84);
@@ -381,6 +394,15 @@
             this.num_moveNum.Size = new System.Drawing.Size(120, 28);
             this.num_moveNum.TabIndex = 1;
             this.num_moveNum.ValueChanged += new System.EventHandler(this.SettingControlsChanged);
+            // 
+            // lb_divSpt
+            // 
+            this.lb_divSpt.AutoSize = true;
+            this.lb_divSpt.Location = new System.Drawing.Point(7, 124);
+            this.lb_divSpt.Name = "lb_divSpt";
+            this.lb_divSpt.Size = new System.Drawing.Size(314, 18);
+            this.lb_divSpt.TabIndex = 4;
+            this.lb_divSpt.Text = "Command num each script (0 = INF):";
             // 
             // lb_delayMove
             // 
@@ -447,6 +469,7 @@
             // 
             // combo_difficulty
             // 
+            this.combo_difficulty.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.combo_difficulty.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.combo_difficulty.FormattingEnabled = true;
             this.combo_difficulty.Location = new System.Drawing.Point(546, 16);
@@ -455,25 +478,24 @@
             this.combo_difficulty.TabIndex = 10;
             this.combo_difficulty.SelectedIndexChanged += new System.EventHandler(this.textScore_Change);
             // 
-            // lb_desyncOffset
+            // pgbar_main
             // 
-            this.lb_desyncOffset.AutoSize = true;
-            this.lb_desyncOffset.Location = new System.Drawing.Point(7, 24);
-            this.lb_desyncOffset.Name = "lb_desyncOffset";
-            this.lb_desyncOffset.Size = new System.Drawing.Size(269, 18);
-            this.lb_desyncOffset.TabIndex = 9;
-            this.lb_desyncOffset.Text = "Desync offset (num / den ms):";
+            this.pgbar_main.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.pgbar_main.Location = new System.Drawing.Point(546, 369);
+            this.pgbar_main.Name = "pgbar_main";
+            this.pgbar_main.Size = new System.Drawing.Size(232, 23);
+            this.pgbar_main.TabIndex = 11;
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.pgbar_main);
             this.Controls.Add(this.combo_difficulty);
             this.Controls.Add(this.tabC_main);
             this.Controls.Add(this.button_Save);
             this.Controls.Add(this.output_000);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "FormMain";
             this.Text = "MilishitaMacro";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.form_main_FormClosing);
@@ -485,9 +507,9 @@
             this.tab_Rework.PerformLayout();
             this.tab_Settings.ResumeLayout(false);
             this.tab_Settings.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.num_nCmdScpt)).EndInit();
             this.gb_delays.ResumeLayout(false);
             this.gb_delays.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.num_nCmdScpt)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_moveNum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_Den)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_downNum)).EndInit();
@@ -533,6 +555,7 @@
         private System.Windows.Forms.Label lb_divSpt;
         private System.Windows.Forms.NumericUpDown num_nCmdScpt;
         private System.Windows.Forms.Label lb_desyncOffset;
+        private System.Windows.Forms.ProgressBar pgbar_main;
     }
 }
 

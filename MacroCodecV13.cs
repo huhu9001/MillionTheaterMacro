@@ -73,11 +73,6 @@ namespace MilishitaMacro {
                 public int Delta;
                 public string EventType;
             }
-            public class class_Event_comparer : IComparer<class_Event> {
-                public int Compare(class_Event a, class_Event b) {
-                    return a.Timestamp - b.Timestamp;
-                }
-            }
             [JsonProperty(Order = 6)]
             public class_Event[] Events;
 

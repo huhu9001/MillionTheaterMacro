@@ -15,7 +15,7 @@ namespace MilishitaMacro {
         }
     }
 
-    public struct MacroVersion {
+    struct MacroVersion {
         public enum Value { BluestacksParser13, BluestacksParser17 }
         public readonly int value;
         public string name { get; }
@@ -24,7 +24,6 @@ namespace MilishitaMacro {
         }
     }
     struct DiffName {
-
         public string displayName { get; }
 
         public readonly string urlName;
@@ -473,9 +472,9 @@ namespace MilishitaMacro {
             List<List<MacroCommand>> commandN = new List<List<MacroCommand>>();
 
             foreach (List<MacroCommand> command1 in command2) {
-                command1.Sort(new Comparison<MacroCommand>((c1, c2) => {
+                command1.Sort((c1, c2) => {
                     return c1.time - c2.time;
-                }));
+                });
 
                 bool isDown = false;
                 int previous_time = 0, this_time;
