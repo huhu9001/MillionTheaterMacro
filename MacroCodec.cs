@@ -355,17 +355,21 @@ namespace MilishitaMacro {
                 new StateTimeline(),
                 new StateTimeline(),
             };
+            Func<double, bool> IsLeft = CodecSettings.diffs[n_diff].IsLeft;
 
             foreach (var note in score.Notes) {
                 int dexterity;
                 string dexterity_suffix;
-                if (CodecSettings.diffs[n_diff].IsLeft(note.EndX)) {
-                    if (Handbusy[0].IsIn(note.Ticks)) { dexterity = 1; dexterity_suffix = "D"; }
-                    else { dexterity = 0; dexterity_suffix = ""; }
+                string dex_first;
+                if (IsLeft(note.EndX)) {
+                    if (Handbusy[0].IsIn(note.Ticks))
+                        { dexterity = 1; dexterity_suffix = "D"; dex_first = "D"; }
+                    else { dexterity = 0; dexterity_suffix = "S"; dex_first = ""; }
                 }
                 else {
-                    if (Handbusy[1].IsIn(note.Ticks)) { dexterity = 0; dexterity_suffix = "S"; }
-                    else { dexterity = 1; dexterity_suffix = ""; }
+                    if (Handbusy[1].IsIn(note.Ticks))
+                        { dexterity = 0; dexterity_suffix = "S"; dex_first = "S"; }
+                    else { dexterity = 1; dexterity_suffix = "D"; dex_first = ""; }
                 }
                 if (note.FollowingNotes == null) {
                     string note_type = 
@@ -373,7 +377,7 @@ namespace MilishitaMacro {
                         note.FlickDirection == 1 ? "L" :
                         note.FlickDirection == 2 ? "U" :
                         note.FlickDirection == 3 ? "R" : "";
-                    yield return FromSingleNote(note) + dexterity_suffix + note_type;
+                    yield return FromSingleNote(note) + dex_first + note_type;
                     Handbusy[dexterity].Insert(note.Ticks, note.Ticks + 5);
                 }
                 else {
@@ -382,15 +386,18 @@ namespace MilishitaMacro {
                         note.FlickDirection == 1 ? "L" :
                         note.FlickDirection == 2 ? "U" :
                         note.FlickDirection == 3 ? "R" : "+";
-                    yield return FromSingleNote(note) + dexterity_suffix + note_type;
+                    yield return FromSingleNote(note) + dex_first + note_type;
                     for (int i1 = 0; i1 < note.FollowingNotes.Length - 1; ++i1) {
-                        yield return FromSingleNote(note.FollowingNotes[i1]) + dexterity_suffix + "=";
+                        JsonScoreMltd.class_Note note_following = note.FollowingNotes[i1];
+                        string dex_following = (IsLeft(note_following.EndX) ? 0 : 1) == dexterity ? "" : dexterity_suffix;
+                        yield return FromSingleNote(note.FollowingNotes[i1]) + dex_following + "=";
                     }
                     JsonScoreMltd.class_Note note_last = note.FollowingNotes.Last();
+                    string dex_last = (IsLeft(note_last.EndX) ? 0 : 1) == dexterity ? "" : dexterity_suffix;
                     string note_type_last = note_last.FlickDirection == 1 ? "L" :
                             note_last.FlickDirection == 2 ? "U" :
                             note_last.FlickDirection == 3 ? "R" : "-";
-                    yield return FromSingleNote(note_last) + dexterity_suffix + note_type_last;
+                    yield return FromSingleNote(note_last) + dex_last + note_type_last;
                     Handbusy[dexterity].Insert(note.Ticks, note_last.Ticks + 5);
                 }
             }
