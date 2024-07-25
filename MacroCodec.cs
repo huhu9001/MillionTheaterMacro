@@ -326,20 +326,14 @@ namespace MilishitaMacro {
         static int FromTicksToMilisecond(int _t, JsonScoreMltd.class_Conductor[] _tempo) {
             const double tempo_const = 96;
             int time = 0;
-            if (_tempo.Length == 0) throw new Exception("BPM information is missing.");
-            _tempo.OrderBy(u => u.Ticks);
-            for (int i0 = 1; ;) {
-                if (i0 < _tempo.Length && _tempo[i0].Ticks < _t) {
-                    time += (int)
-                        ((ulong)(_tempo[i0].Ticks - _tempo[i0 - 1].Ticks) * 1000 / (ulong)(_tempo[i0 - 1].Tempo * tempo_const));
-                    ++i0;
-                }
-                else {
-                    time += (int)
-                        ((ulong)(_t - _tempo[i0 - 1].Ticks) * 1000 / (ulong)(_tempo[i0 - 1].Tempo * tempo_const));
-                    break;
-                }
+            IEnumerator<JsonScoreMltd.class_Conductor> tems = _tempo.OrderBy(u => u.Ticks).GetEnumerator();
+            if (!tems.MoveNext()) throw new Exception("BPM information is missing.");
+            JsonScoreMltd.class_Conductor tem = tems.Current, tem_next;
+            while (tems.MoveNext() && (tem_next = tems.Current).Ticks < _t) {
+                time += (int)((ulong)(tem_next.Ticks - tem.Ticks) * 1000 / (ulong)(tem.Tempo * tempo_const));
+                tem = tem_next;
             }
+            time += (int)((ulong)(_t - tem.Ticks) * 1000 / (ulong)(tem.Tempo * tempo_const));
             return time;
         }
 
@@ -479,9 +473,7 @@ namespace MilishitaMacro {
             List<List<MacroCommand>> commandN = new List<List<MacroCommand>>();
 
             foreach (List<MacroCommand> command1 in command2) {
-                command1.Sort((c1, c2) => {
-                    return c1.time - c2.time;
-                });
+                command1.Sort((c1, c2) => c1.time - c2.time);
 
                 bool isDown = false;
                 int previous_time = 0, this_time;
@@ -619,9 +611,7 @@ namespace MilishitaMacro {
                 foreach (MacroCommand c in command1)
                     c.time -= time_init;
 
-            return commandN.ConvertAll(new Converter<List<MacroCommand>, MacroCommand[]>((list) => {
-                return list.ToArray();
-            })).ToArray();
+            return commandN.ConvertAll(new Converter<List<MacroCommand>, MacroCommand[]>(list => list.ToArray())).ToArray();
         }
     }
 }

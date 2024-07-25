@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MilishitaMacro {
     class JsonMacroBs17 {
@@ -122,13 +123,9 @@ namespace MilishitaMacro {
                     Key = j.Key;
                     Key_alt1 = "";
 
-                    MacroCommand[] event_sorted = (MacroCommand[])j.Events.Clone();
-                    Array.Sort(event_sorted, (c1, c2) => {
-                        return c1.time - c2.time;
-                    });
-                    List<string> o = new List<string>(event_sorted.Length * 2);
+                    List<string> o = new List<string>(j.Events.Length * 2);
                     int time_prev = 0;
-                    foreach (MacroCommand c in event_sorted) {
+                    foreach (MacroCommand c in j.Events.OrderBy(c => c.time)) {
                         string typename;
                         switch (c.type) {
                             default: continue;
@@ -299,9 +296,7 @@ namespace MilishitaMacro {
         }
 
         static public JsonMacroBs17.class_ControlSchemes.class_GameControls[] ChangeAppendage(JsonMacroBs17.class_ControlSchemes.class_GameControls[] input, JsonAppendage app) {
-            int n_noapp = Array.FindIndex(input, (p) => {
-                return !(p is JsonMacroBs17.class_ControlSchemes.class_GameControls_Script);
-            });
+            int n_noapp = Array.FindIndex(input, p => !(p is JsonMacroBs17.class_ControlSchemes.class_GameControls_Script));
             if (n_noapp == -1) n_noapp = input.Length;
 
             int output_size = n_noapp + app.tap.Length + app.zoom.Length + app.repeat.Length + app.combo.Length;

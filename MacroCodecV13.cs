@@ -232,9 +232,7 @@ namespace MilishitaMacro {
         }
 
         static public JsonMacroBs13.class_Primitive[] ChangeAppendage(JsonMacroBs13.class_Primitive[] input, JsonAppendage app) {
-            int n_noapp = Array.FindIndex(input, (p) => {
-                return !(p is JsonMacroBs13.class_Primitive_Combo);
-            });
+            int n_noapp = Array.FindIndex(input, p => !(p is JsonMacroBs13.class_Primitive_Combo));
             if (n_noapp == -1) n_noapp = input.Length;
 
             int output_size = n_noapp + app.tap.Length + app.zoom.Length + app.repeat.Length + app.combo.Length;

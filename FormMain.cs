@@ -190,27 +190,27 @@ namespace MilishitaMacro {
                     Convert.ToInt32(num_downNum.Value),
                     Convert.ToInt32(num_moveNum.Value),
                     Convert.ToInt32(num_Den.Value));
-
-                string output;
-                switch (settings.version) {
-                    default: output_000.Text += "Macro version error."; return;
-                    case (int)MacroVersion.Value.BluestacksParser13:
-                        output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV13(
-                            text_Score.Lines,
-                            appendage,
-                            textb_SongName.Text,
-                            ref settings));
-                        break;
-                    case (int)MacroVersion.Value.BluestacksParser17:
-                        output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV17(
-                            text_Score.Lines,
-                            appendage,
-                            textb_SongName.Text,
-                            ref settings));
-                        break;
-                }
-
+                
                 try {
+                    string output;
+                    switch (settings.version) {
+                        default: output_000.Text += "Macro version error."; return;
+                        case (int)MacroVersion.Value.BluestacksParser13:
+                            output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV13(
+                                text_Score.Lines,
+                                appendage,
+                                textb_SongName.Text,
+                                ref settings));
+                            break;
+                        case (int)MacroVersion.Value.BluestacksParser17:
+                            output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV17(
+                                text_Score.Lines,
+                                appendage,
+                                textb_SongName.Text,
+                                ref settings));
+                            break;
+                    }
+
                     StreamWriter sw_save = new StreamWriter(new FileStream(d_save.FileName, FileMode.Create));
                     sw_save.Write(output);
                     sw_save.Close();
