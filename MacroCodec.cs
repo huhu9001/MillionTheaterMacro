@@ -173,12 +173,12 @@ namespace MilishitaMacro {
                 new DiffName(4),
                 new DiffName(5),
         };
-        public readonly int version;
-        public readonly int nDiff;
-        public readonly int numCommandPerScript;
-        public readonly int numDown;
-        public readonly int numMove;
-        public readonly int den;
+        public int version;
+        public int nDiff;
+        public int numCommandPerScript;
+        public int numDown;
+        public int numMove;
+        public int den;
         public CodecSettings(int version, int nDiff, int numCommandPerScript, int numDown, int numMove, int den) {
             this.version = version;
             this.nDiff = nDiff;

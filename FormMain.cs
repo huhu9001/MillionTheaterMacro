@@ -182,14 +182,14 @@ namespace MilishitaMacro {
                     settings_changed = true; dir_CFG[index_diff_selected] = dir_new;
                 }
                 
-                int n_con = appendage.tap.Length + appendage.zoom.Length + appendage.repeat.Length + appendage.combo.Length + 2;
-                CodecSettings settings = new CodecSettings(
-                    ((MacroVersion)combo_ver.SelectedItem).value,
-                    index_diff_selected,
-                    Convert.ToInt32(num_nCmdScpt.Value),
-                    Convert.ToInt32(num_downNum.Value),
-                    Convert.ToInt32(num_moveNum.Value),
-                    Convert.ToInt32(num_Den.Value));
+                CodecSettings settings = new CodecSettings {
+                    version = ((MacroVersion)combo_ver.SelectedItem).value,
+                    nDiff = index_diff_selected,
+                    numCommandPerScript = Convert.ToInt32(num_nCmdScpt.Value),
+                    numDown = Convert.ToInt32(num_downNum.Value),
+                    numMove = Convert.ToInt32(num_moveNum.Value),
+                    den = Convert.ToInt32(num_Den.Value),
+                };
                 
                 try {
                     string output;
@@ -468,13 +468,14 @@ namespace MilishitaMacro {
             uint count = 0, count_success = 0, count_failure = 0;
             bool isOlder = cb_old.Checked;
             bool isApOnly = sender == b_reworkAp;
-            CodecSettings settings = new CodecSettings(
-                ((MacroVersion)combo_ver.SelectedItem).value,
-                combo_difficulty.SelectedIndex,
-                Convert.ToInt32(num_nCmdScpt.Value),
-                Convert.ToInt32(num_downNum.Value),
-                Convert.ToInt32(num_moveNum.Value),
-                Convert.ToInt32(num_Den.Value));
+            CodecSettings settings = new CodecSettings {
+                version = ((MacroVersion)combo_ver.SelectedItem).value,
+                nDiff = 5,
+                numCommandPerScript = Convert.ToInt32(num_nCmdScpt.Value),
+                numDown = Convert.ToInt32(num_downNum.Value),
+                numMove = Convert.ToInt32(num_moveNum.Value),
+                den = Convert.ToInt32(num_Den.Value),
+            };
 
             Task t = new Task(() => {
                 string[] files_cfg = Directory.GetFiles(tb_reworkF.Text, "*.cfg", SearchOption.AllDirectories);
@@ -515,24 +516,17 @@ namespace MilishitaMacro {
                         else {
                             string filename = Path.GetFileNameWithoutExtension(f_cfg);
                             string songname = filename.Substring(0, filename.Length - 3);
-                            DiffName diff;
                             switch (filename.Substring(filename.Length - 2)) {
                                 default:
-                                    diff = CodecSettings.diffs[5];
+                                    settings.nDiff = 5;
                                     songname = filename;
                                     break;
-                                case "2s":
-                                    diff = CodecSettings.diffs[0]; break;
-                                case "2p":
-                                    diff = CodecSettings.diffs[1]; break;
-                                case "2m":
-                                    diff = CodecSettings.diffs[2]; break;
-                                case "4m":
-                                    diff = CodecSettings.diffs[3]; break;
-                                case "6m":
-                                    diff = CodecSettings.diffs[4]; break;
-                                case "mm":
-                                    diff = CodecSettings.diffs[5]; break;
+                                case "2s": settings.nDiff = 0; break;
+                                case "2p": settings.nDiff = 1; break;
+                                case "2m": settings.nDiff = 2; break;
+                                case "4m": settings.nDiff = 3; break;
+                                case "6m": settings.nDiff = 4; break;
+                                case "mm": settings.nDiff = 5; break;
                             }
 
                             StreamReader fr = new StreamReader(new FileStream(dir_TXT + "\\" + filename + ".txt", FileMode.Open, FileAccess.Read));
