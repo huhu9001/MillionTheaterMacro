@@ -206,7 +206,6 @@
             // 
             // button_Download
             // 
-            this.button_Download.Enabled = false;
             this.button_Download.Location = new System.Drawing.Point(30, 80);
             this.button_Download.Name = "button_Download";
             this.button_Download.Size = new System.Drawing.Size(110, 35);

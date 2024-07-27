@@ -179,14 +179,6 @@ namespace MilishitaMacro {
         public int numDown;
         public int numMove;
         public int den;
-        public CodecSettings(int version, int nDiff, int numCommandPerScript, int numDown, int numMove, int den) {
-            this.version = version;
-            this.nDiff = nDiff;
-            this.numCommandPerScript = numCommandPerScript >= 0 ? numCommandPerScript : 0;
-            this.numDown = numDown >= 0 ? numDown : 0;
-            this.numMove = numMove >= 0 ? numMove : 0;
-            this.den = den > 0 ? den : 1;
-        }
     }
 
     class JsonScoreMltd : object {
@@ -402,6 +394,7 @@ namespace MilishitaMacro {
 
             ref DiffName diff = ref CodecSettings.diffs[settings.nDiff];
 
+            //notes to commands
             foreach (string line in lines) {
                 Match m_u;
                 if ((m_u = Regex.Match(line, "^[0-9:.]+(?=,)")).Success) {
@@ -418,7 +411,6 @@ namespace MilishitaMacro {
                                 diff.IsLeft(nx) ? 0 : 1
                             : m_u.Groups[2].Value[0] == 's' || m_u.Groups[2].Value[0] == 'S' ? 0 : 1];
 
-                            int type;
                             double x = diff.GetX(nx);
                             double y = diff.GetY(nx);
 
@@ -426,16 +418,19 @@ namespace MilishitaMacro {
                                 command1.Add(new MacroCommand(time, (int)MacroCommand.Type.DOWN, x, y));
                                 command1.Add(new MacroCommand(time + 5, (int)MacroCommand.Type.UP, x, y));
                             }
-                            else switch (m_u.Groups[3].Value[0]) {
+                            else {
+                                int type;
+                                switch (m_u.Groups[3].Value[0]) {
                                     default:
                                         command1.Add(new MacroCommand(time, (int)MacroCommand.Type.DOWN, x, y));
                                         command1.Add(new MacroCommand(time + 5, (int)MacroCommand.Type.UP, x, y));
                                         break;
                                     case 'l': case 'L': type = 1; goto label_flick;
                                     case 'u': case 'U': type = 2; goto label_flick;
-                                    case 'r': case 'R':
+                                    case 'r':
+                                    case 'R':
                                         type = 3;
-                                        label_flick:
+                                    label_flick:
                                         {
                                             double x_flick = diff.x_flick[type];
                                             double y_flick = diff.y_flick[type];
@@ -459,8 +454,10 @@ namespace MilishitaMacro {
                                             double y_center = diff.y_center;
                                             command1.Add(new MacroCommand(time, (int)MacroCommand.Type.DOWN, x_center, y_center));
                                             command1.Add(new MacroCommand(time + 5, (int)MacroCommand.Type.UP, x_center, y_center));
-                                        } break;
+                                        }
+                                        break;
                                 }
+                            }
                         }
                         else break;
                     }
@@ -479,6 +476,7 @@ namespace MilishitaMacro {
                 int previous_time = 0, this_time;
                 double x_now = 0, y_now = 0;
 
+                //connect commands
                 for (int i0 = 0; i0 < command1.Count; ++i0) {
                     this_time = command1[i0].time;
                     switch (command1[i0].type) {
@@ -555,6 +553,7 @@ namespace MilishitaMacro {
                     previous_time = this_time;
                 }
 
+                //desync management 1: divide commands into groups
                 if (settings.numCommandPerScript > 0) {
                     int i0 = 0;
                     int i1 = settings.numCommandPerScript - 1;
@@ -571,8 +570,8 @@ namespace MilishitaMacro {
                 else commandN.Add(command1);
             }
 
+            //desync management 2: linear compensation
             foreach (List<MacroCommand> command1 in commandN) {
-                //Every key event makes a strange delay depending on the PC performance
                 for (int i0 = 0, n_delay = 0; i0 < command1.Count - 1; ++i0) {
                     switch (command1[i0].type) {
                         case (int)MacroCommand.Type.DOWN:
@@ -598,6 +597,7 @@ namespace MilishitaMacro {
                 }
             }
 
+            //end sign
             if (commandN.Count >= 1) {
                 commandN[0].Add(new MacroCommand(time_exit + 500, (int)MacroCommand.Type.DOWN, 36, 50));
                 commandN[0].Add(new MacroCommand(time_exit + 505, (int)MacroCommand.Type.UP, 36, 50));
@@ -607,11 +607,12 @@ namespace MilishitaMacro {
                 commandN[1].Add(new MacroCommand(time_exit + 505, (int)MacroCommand.Type.UP, 64, 50));
             }
 
+            //move start time to the 1st command
             foreach (List<MacroCommand> command1 in commandN)
                 foreach (MacroCommand c in command1)
                     c.time -= time_init;
 
-            return commandN.ConvertAll(new Converter<List<MacroCommand>, MacroCommand[]>(list => list.ToArray())).ToArray();
+            return commandN.ConvertAll(list => list.ToArray()).ToArray();
         }
     }
 }

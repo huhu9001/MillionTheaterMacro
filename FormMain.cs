@@ -21,6 +21,8 @@ namespace MilishitaMacro {
         bool b_changed_songname;
         bool settings_changed;
 
+        Task task_current;
+
         public FormMain() {
             InitializeComponent();
 
@@ -31,6 +33,8 @@ namespace MilishitaMacro {
             combo_difficulty.DataSource = CodecSettings.diffs;
             combo_difficulty.DisplayMember = "displayName";
             combo_difficulty.SelectedIndex = 5;
+
+            task_current = null;
 
             try {
                 StreamReader saved_songs = new StreamReader(new FileStream("songs.txt", FileMode.Open, FileAccess.Read));
@@ -47,10 +51,12 @@ namespace MilishitaMacro {
                 }
                 saved_songs.Close();
                 combo_SongName.DataSource = songs;
-                button_Download.Enabled = true;
-                
+                button_Download.Enabled = songs_size > 0;
             }
-            catch (Exception) { songs = new SongName[0]; }
+            catch (Exception) {
+                songs = new SongName[0];
+                button_Download.Enabled = false;
+            }
             b_changed_songname = false;
 
             try {
@@ -167,6 +173,18 @@ namespace MilishitaMacro {
             else return reader.ReadToEnd();
         }
 
+        private void DisableInput() {
+            combo_difficulty.Enabled = false;
+            button_Save.Enabled = false;
+            tabC_main.Enabled = false;
+        }
+
+        private void EnableInput() {
+            combo_difficulty.Enabled = true;
+            button_Save.Enabled = true;
+            tabC_main.Enabled = true;
+        }
+
         private void button_Save_Click(object sender, EventArgs e) {
             int index_diff_selected;
             if ((index_diff_selected = combo_difficulty.SelectedIndex) == -1) return;
@@ -222,14 +240,14 @@ namespace MilishitaMacro {
         }
 
         private void button_Download_Click(object sender, EventArgs e) {
+            if (task_current != null) return;
             int index_song_selected, index_diff_selected;
             if ((index_song_selected = combo_SongName.SelectedIndex) == -1) return;
             if ((index_diff_selected = combo_difficulty.SelectedIndex) == -1) return;
-            button_Download.Enabled = false;
-            button_Save.Enabled = false;
+            DisableInput();
             textb_SongName.Text = songs[index_song_selected].fullName;
-            
-            Task t = new Task(() => {
+
+            task_current = new Task(() => {
                 try {
                     HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/musics/" +
                         songs[index_song_selected].urlName +
@@ -264,8 +282,7 @@ namespace MilishitaMacro {
 
                     Invoke(new Action(() => {
                         output_000.Text += "Success.";
-                        button_Save.Enabled = true;
-                        button_Download.Enabled = true;
+                        EnableInput();
 
                         button_Save.Text = "Save*";
                         b_SaveTXT.Text = "Save TXT*";
@@ -275,24 +292,29 @@ namespace MilishitaMacro {
                 catch (Exception err) {
                     Invoke(new Action(() => {
                         output_000.Text += err.Message;
-                        button_Download.Enabled = true;
+                        EnableInput();
                     }));
                 }
+                task_current = null;
             });
-            t.Start();
+            task_current.Start();
         }
 
         private void button_updateSong_Click(object sender, EventArgs e) {
-            button_updateSong.Enabled = false;
-
-            new Task(() => {
+            if (task_current != null) return;
+            DisableInput();
+            
+            task_current = new Task(() => {
                 try {
                     HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/");
                     xhr.Method = "GET";
-                    
+
                     Invoke(new Action(() => { output_000.Text = "Connecting... " + Environment.NewLine; }));
 
                     HttpWebResponse xhrr = (HttpWebResponse)xhr.GetResponse();
+
+                    Invoke(new Action(() => { output_000.Text += "Downloading..." + Environment.NewLine; }));
+
                     StreamReader reader = new StreamReader(xhrr.GetResponseStream());
                     string string_sr = ReadWithProgress(reader, xhrr.ContentLength);
                     reader.Close();
@@ -316,16 +338,18 @@ namespace MilishitaMacro {
                     Invoke(new Action(() => {
                         combo_SongName.DataSource = songs;
                         output_000.Text += "Success.";
-                        button_updateSong.Enabled = true;
+                        EnableInput();
                     }));
                 }
-                catch(Exception err) {
+                catch (Exception err) {
                     Invoke(new Action(() => {
                         output_000.Text += err.Message;
-                        button_updateSong.Enabled = true;
+                        EnableInput();
                     }));
                 }
-            }).Start();
+                task_current = null;
+            });
+            task_current.Start();
         }
 
         private void b_ass_Click(object sender, EventArgs e) {
@@ -465,6 +489,8 @@ namespace MilishitaMacro {
         }
 
         private void b_reworkAp_Click(object sender, EventArgs e) {
+            if (task_current != null) return;
+            DisableInput();
             uint count = 0, count_success = 0, count_failure = 0;
             bool isOlder = cb_old.Checked;
             bool isApOnly = sender == b_reworkAp;
@@ -476,8 +502,8 @@ namespace MilishitaMacro {
                 numMove = Convert.ToInt32(num_moveNum.Value),
                 den = Convert.ToInt32(num_Den.Value),
             };
-
-            Task t = new Task(() => {
+            
+            task_current = new Task(() => {
                 string[] files_cfg = Directory.GetFiles(tb_reworkF.Text, "*.cfg", SearchOption.AllDirectories);
                 int n_cfg = files_cfg.Length;
                 foreach (string f_cfg in files_cfg) {
@@ -498,7 +524,9 @@ namespace MilishitaMacro {
                                             TypeNameHandling = TypeNameHandling.All,
                                             SerializationBinder = new JsonMacroBs13.PrimitiveTypesBinder(),
                                         });
-                                        macro.Primitives = MacroCodec.ChangeAppendage(macro.Primitives, appendage);
+                                        JsonMacroBs13.class_Primitive[] ctrls = macro.Primitives;
+                                        if (ctrls == null) throw new Exception(f_cfg + " has invalid format.");
+                                        macro.Primitives = MacroCodec.ChangeAppendage(ctrls, appendage);
                                         so = JsonConvert.SerializeObject(macro);
                                     }
                                     break;
@@ -507,7 +535,9 @@ namespace MilishitaMacro {
                                             TypeNameHandling = TypeNameHandling.All,
                                             SerializationBinder = new JsonMacroBs17.class_ControlSchemes.GameControlsTypesBinder(),
                                         });
-                                        macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(macro.ControlSchemes[0].GameControls, appendage);
+                                        JsonMacroBs17.class_ControlSchemes.class_GameControls[] ctrls = macro.ControlSchemes[0].GameControls;
+                                        if (ctrls == null) throw new Exception(f_cfg + " has invalid format.");
+                                        macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(ctrls, appendage);
                                         so = JsonConvert.SerializeObject(macro);
                                     }
                                     break;
@@ -574,20 +604,14 @@ namespace MilishitaMacro {
                 Invoke(new Action(() => {
                     pgbar_main.Value = 0;
                     output_000.Text += count_success + " out of " + n_cfg + " files updated.";
+                    EnableInput();
                 }));
+                task_current = null;
             });
 
             output_000.Text = "Start reworking..." + Environment.NewLine;
-            b_rework.Enabled = false;
-            b_reworkAp.Enabled = false;
-            cb_old.Enabled = false;
-            mc_old.Enabled = false;
             pgbar_main.Value = 0;
-            t.Start();
-            b_rework.Enabled = true;
-            b_reworkAp.Enabled = true;
-            cb_old.Enabled = true;
-            mc_old.Enabled = true;
+            task_current.Start();
         }
 
         private void b_reworkBrowse_Click(object sender, EventArgs e) {
