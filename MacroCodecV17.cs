@@ -134,7 +134,7 @@ namespace MilishitaMacro {
                             case (int)MacroCommand.Type.MOVE: typename = "mouseMove"; break;
                         }
                         int time_det = c.time - time_prev;
-                        if (time_det > 0) o.Add("wait " + time_det);
+                        if (time_det > 0) o.Add($"wait {time_det}");
                         o.Add(typename + ' ' + c.x + ' ' + c.y);
                         time_prev = c.time;
                     }
@@ -319,7 +319,7 @@ namespace MilishitaMacro {
             int n_con = commands.Length + appendage.tap.Length + appendage.zoom.Length + appendage.repeat.Length + appendage.combo.Length;
             macro.ControlSchemes[0].GameControls = new JsonMacroBs17.class_ControlSchemes.class_GameControls[n_con];
             
-            macro.ControlSchemes[0].Name = song_name + "_" + CodecSettings.diffs[settings.nDiff].shortName;
+            macro.ControlSchemes[0].Name = $"{song_name}_{CodecSettings.diffs[settings.nDiff].shortName}";
 
             for (int i = 0; i < commands.Length; ++i) {
                 List<string> o = new List<string>(commands[i].Length);
@@ -333,7 +333,7 @@ namespace MilishitaMacro {
                         case (int)MacroCommand.Type.MOVE: typename = "mouseMove"; break;
                     }
                     int time_det = c.time - time_last;
-                    if (time_det > 0) o.Add("wait " + time_det.ToString());
+                    if (time_det > 0) o.Add($"wait {time_det}");
                     o.Add(typename + ' ' + c.x + ' ' + c.y);
                     time_last = c.time;
                 }

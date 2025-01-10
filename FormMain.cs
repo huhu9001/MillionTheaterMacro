@@ -3,15 +3,31 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using System.Diagnostics;
 using System.Net;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
 using Newtonsoft.Json;
+using System.Runtime.Serialization.Formatters;
+using System.Linq;
 
 namespace MilishitaMacro {
     public partial class FormMain : Form {
+        private const string BT_SAVE = "Save";
+        private const string BT_MAKE = "Make";
+        private static readonly string[] NAME_DLLS = new string[] {
+            "avcodec",
+            "avdevice",
+            "avfilter",
+            "avformat",
+            "avutil",
+            "postproc",
+            "swresample",
+            "swscale",
+        };
+
         SongName[] songs;
         JsonAppendage appendage;
 
@@ -112,7 +128,7 @@ namespace MilishitaMacro {
             }
             catch (Exception err) {
                 appendage = new JsonAppendage();
-                MessageBox.Show("Loading appendage JSON error, please check ap.json in the program directory: " + err.Message);
+                MessageBox.Show($"Loading appendage JSON error, please check ap.json in the program directory: {err.Message}");
             }
             if (appendage.tap.Length == 0 && appendage.zoom.Length == 0 && appendage.repeat.Length == 0 && appendage.combo.Length != 0)
                 appendage.tap = new JsonAppendage.Tap[] { new JsonAppendage.Tap(25, 25, "") };
@@ -134,27 +150,26 @@ namespace MilishitaMacro {
             if (settings_changed) try {
                     StreamWriter saved_dirs = new StreamWriter(new FileStream("settings.ini", FileMode.Create));
                     string s;
-                    if ((s = dir_TXT.Trim()) != "") saved_dirs.WriteLine("dirTXT=" + s);
-                    if ((s = dir_ASS.Trim()) != "") saved_dirs.WriteLine("dirASS=" + s);
-                    if ((s = dir_CFG[0].Trim()) != "") saved_dirs.WriteLine("dirCFG2S=" + s);
-                    if ((s = dir_CFG[1].Trim()) != "") saved_dirs.WriteLine("dirCFG2P=" + s);
-                    if ((s = dir_CFG[2].Trim()) != "") saved_dirs.WriteLine("dirCFG2M=" + s);
-                    if ((s = dir_CFG[3].Trim()) != "") saved_dirs.WriteLine("dirCFG4M=" + s);
-                    if ((s = dir_CFG[4].Trim()) != "") saved_dirs.WriteLine("dirCFG6M=" + s);
-                    if ((s = dir_CFG[5].Trim()) != "") saved_dirs.WriteLine("dirCFGMM=" + s);
-                    if (combo_ver.SelectedIndex > 0) saved_dirs.WriteLine("verMacro=" + combo_ver.SelectedIndex);
-                    if (num_downNum.Value > 0) saved_dirs.WriteLine("delayClick=" + num_downNum.Value);
-                    if (num_moveNum.Value > 0) saved_dirs.WriteLine("delayMove=" + num_moveNum.Value);
-                    if (num_Den.Value > 1) saved_dirs.WriteLine("delayDen=" + num_Den.Value);
-                    if (num_nCmdScpt.Value > 0) saved_dirs.WriteLine("nCmdScpt=" + num_nCmdScpt.Value);
+                    if ((s = dir_TXT.Trim()) != "") saved_dirs.WriteLine($"dirTXT={s}");
+                    if ((s = dir_ASS.Trim()) != "") saved_dirs.WriteLine($"dirASS={s}");
+                    if ((s = dir_CFG[0].Trim()) != "") saved_dirs.WriteLine($"dirCFG2S={s}");
+                    if ((s = dir_CFG[1].Trim()) != "") saved_dirs.WriteLine($"dirCFG2P={s}");
+                    if ((s = dir_CFG[2].Trim()) != "") saved_dirs.WriteLine($"dirCFG2M={s}");
+                    if ((s = dir_CFG[3].Trim()) != "") saved_dirs.WriteLine($"dirCFG4M={s}");
+                    if ((s = dir_CFG[4].Trim()) != "") saved_dirs.WriteLine($"dirCFG6M={s}");
+                    if ((s = dir_CFG[5].Trim()) != "") saved_dirs.WriteLine($"dirCFGMM={s}");
+                    if (combo_ver.SelectedIndex > 0) saved_dirs.WriteLine($"verMacro={combo_ver.SelectedIndex}");
+                    if (num_downNum.Value > 0) saved_dirs.WriteLine($"delayClick={num_downNum.Value}");
+                    if (num_moveNum.Value > 0) saved_dirs.WriteLine($"delayMove={num_moveNum.Value}");
+                    if (num_Den.Value > 1) saved_dirs.WriteLine($"delayDen={num_Den.Value}");
+                    if (num_nCmdScpt.Value > 0) saved_dirs.WriteLine($"nCmdScpt={num_nCmdScpt.Value}");
                     saved_dirs.Close();
             }
             catch (Exception) { }
         }
 
         private string ReadWithProgress(StreamReader reader, long total) {
-            if (total > 0) {
-                if (total > int.MaxValue) throw new ArgumentOutOfRangeException();
+            if (total > 0 && total <= int.MaxValue) {
                 StringBuilder builder = new StringBuilder((int)total);
                 char[] buffer = new char[0x1000];
                 int current = 0;
@@ -175,20 +190,20 @@ namespace MilishitaMacro {
 
         private void DisableInput() {
             combo_difficulty.Enabled = false;
-            button_Save.Enabled = false;
+            button_Make.Enabled = false;
             tabC_main.Enabled = false;
         }
 
         private void EnableInput() {
             combo_difficulty.Enabled = true;
-            button_Save.Enabled = true;
+            button_Make.Enabled = true;
             tabC_main.Enabled = true;
         }
 
-        private void button_Save_Click(object sender, EventArgs e) {
+        private void button_Make_Click(object sender, EventArgs e) {
             int index_diff_selected;
             if ((index_diff_selected = combo_difficulty.SelectedIndex) == -1) return;
-            string name_save = textb_SongName.Text + '_' + CodecSettings.diffs[index_diff_selected].shortName + ".cfg";
+            string name_save = $"{textb_SongName.Text}_{CodecSettings.diffs[index_diff_selected].shortName}.cfg";
             SaveFileDialog d_save = new SaveFileDialog {
                 FileName = name_save,
                 Filter = "CFG files (*.cfg)|*.cfg|All files (*.*)|*.*",
@@ -209,6 +224,7 @@ namespace MilishitaMacro {
                     den = Convert.ToInt32(num_Den.Value),
                 };
                 
+                output_000.Text = "";
                 try {
                     string output;
                     switch (settings.version) {
@@ -235,7 +251,7 @@ namespace MilishitaMacro {
                 }
                 catch (Exception err) { output_000.Text += err.Message; }
                 
-                button_Save.Text = "Save";
+                button_Make.Text = BT_MAKE;
             }
         }
 
@@ -249,17 +265,14 @@ namespace MilishitaMacro {
 
             task_current = new Task(() => {
                 try {
-                    HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/musics/" +
-                        songs[index_song_selected].urlName +
-                        "/" +
-                        CodecSettings.diffs[index_diff_selected].urlName);
+                    HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create($"https://million.hyrorre.com/musics/{songs[index_song_selected].urlName}/{CodecSettings.diffs[index_diff_selected].urlName}");
                     xhr.Method = "GET";
 
-                    Invoke(new Action(() => { output_000.Text = "Connecting... " + Environment.NewLine; }));
+                    Invoke(new Action(() => { output_000.Text = $"Connecting... {Environment.NewLine}"; }));
                     
                     HttpWebResponse xhrr = xhr.GetResponse() as HttpWebResponse;
 
-                    Invoke(new Action(() => { output_000.Text += "Downloading..." + Environment.NewLine; }));
+                    Invoke(new Action(() => { output_000.Text += $"Downloading...{Environment.NewLine}"; }));
 
                     StreamReader reader = new StreamReader(xhrr.GetResponseStream());
                     string string_sr = ReadWithProgress(reader, xhrr.ContentLength);
@@ -270,7 +283,7 @@ namespace MilishitaMacro {
 
                     string_sr = Regex.Replace(m_u.Value, "&quot;", "\"");
 
-                    Invoke(new Action(() => { output_000.Text += "ParsingJSON..." + Environment.NewLine; }));
+                    Invoke(new Action(() => { output_000.Text += $"ParsingJSON...{Environment.NewLine}"; }));
 
                     JsonScoreMltd js_notes = JsonConvert.DeserializeObject<JsonScoreMltd>(string_sr);
                     StringBuilder strb = new StringBuilder();
@@ -284,8 +297,8 @@ namespace MilishitaMacro {
                         output_000.Text += "Success.";
                         EnableInput();
 
-                        button_Save.Text = "Save*";
-                        b_SaveTXT.Text = "Save TXT*";
+                        button_Make.Text = $"{BT_MAKE}*";
+                        b_SaveTXT.Text = $"{BT_SAVE}*";
                         tabC_main.SelectedIndex = 0;
                     }));
                 }
@@ -309,17 +322,17 @@ namespace MilishitaMacro {
                     HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/");
                     xhr.Method = "GET";
 
-                    Invoke(new Action(() => { output_000.Text = "Connecting... " + Environment.NewLine; }));
+                    Invoke(new Action(() => { output_000.Text = $"Connecting... {Environment.NewLine}"; }));
 
                     HttpWebResponse xhrr = (HttpWebResponse)xhr.GetResponse();
 
-                    Invoke(new Action(() => { output_000.Text += "Downloading..." + Environment.NewLine; }));
+                    Invoke(new Action(() => { output_000.Text += $"Downloading...{Environment.NewLine}"; }));
 
                     StreamReader reader = new StreamReader(xhrr.GetResponseStream());
                     string string_sr = ReadWithProgress(reader, xhrr.ContentLength);
                     reader.Close();
 
-                    Invoke(new Action(() => { output_000.Text += "ProcessingText..." + Environment.NewLine; }));
+                    Invoke(new Action(() => { output_000.Text += $"ProcessingText...{Environment.NewLine}"; }));
 
                     Match m_u = Regex.Match(string_sr, "(?<=<ul id=\"musiclist\" class=\"list\">)[\\s\\S]*?(?=</ul>)");
                     if (!m_u.Success) throw new Exception("Songs information is not found.");
@@ -328,9 +341,9 @@ namespace MilishitaMacro {
                     Match m_u_1, m_u_2;
                     for (int i0 = 0; i0 < m_uc.Count; ++i0) {
                         m_u_1 = Regex.Match(m_uc[i0].Value, "(?<=<h3 class=\"title\">).*?(?=</h3>)");
-                        if (!m_u_1.Success) throw new Exception("Song" + i0.ToString() + "do not have a name.");
+                        if (!m_u_1.Success) throw new Exception($"Song {i0} do not have a name.");
                         m_u_2 = Regex.Match(m_uc[i0].Value, "(?<=<a href=\"/musics/).*?(?=/\\d+\">\\d+</a>)");
-                        if (!m_u_1.Success) throw new Exception("Song \"" + m_u_1.Value + "\" do not have a URL.");
+                        if (!m_u_1.Success) throw new Exception($"Song \"{m_u_1.Value}\" do not have a URL.");
                         songs[i0] = new SongName(m_u_1.Value, m_u_2.Value);
                     }
 
@@ -352,70 +365,137 @@ namespace MilishitaMacro {
             task_current.Start();
         }
 
+        private void openAss(string fass) {
+            try {
+                Match m_u;
+                List<string> s_ass = new List<string>();
+                StreamReader sr_ass = new StreamReader(new FileStream(fass, FileMode.Open, FileAccess.Read));
+                for(; !sr_ass.EndOfStream; ) {
+                    m_u = Regex.Match(sr_ass.ReadLine(), "(?:Dialogue|Comment):[^,]*,([^,]*),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)");
+                    if (m_u.Success) {
+                        s_ass.Add($"{m_u.Groups[1]},{m_u.Groups[2]}");
+                    }
+                }
+                sr_ass.Close();
+                text_Score.Lines = s_ass.ToArray();
+
+                m_u = Regex.Match(fass, "\\\\([^\\\\_]+)_([^\\\\_]+)\\.txt$");
+                if (m_u.Success)
+                {
+                    textb_SongName.Text = m_u.Groups[1].Value;
+                    switch (m_u.Groups[2].Value)
+                    {
+                        default:
+                            combo_difficulty.SelectedIndex = -1; break;
+                        case "2s":
+                            combo_difficulty.SelectedIndex = 0; break;
+                        case "2p":
+                            combo_difficulty.SelectedIndex = 1; break;
+                        case "2m":
+                            combo_difficulty.SelectedIndex = 2; break;
+                        case "4m":
+                            combo_difficulty.SelectedIndex = 3; break;
+                        case "6m":
+                            combo_difficulty.SelectedIndex = 4; break;
+                        case "mm":
+                            combo_difficulty.SelectedIndex = 5; break;
+                    }
+                }
+
+                button_Make.Text = $"{BT_MAKE}*";
+                b_SaveTXT.Text = $"{BT_SAVE}*";
+            }
+            catch (Exception err) { output_000.Text = err.Message; }
+        }
+
         private void b_ass_Click(object sender, EventArgs e) {
             OpenFileDialog d_load = new OpenFileDialog {
                 Filter = "ASS files (*.ass)|*.ass|All files (*.*)|*.*",
                 InitialDirectory = dir_ASS,
             };
-            if (d_load.ShowDialog() == DialogResult.OK) {
-                string dir_new = Path.GetDirectoryName(d_load.FileName);
-                if (dir_ASS != dir_new) { settings_changed = true; dir_ASS = dir_new; }
-                try {
-                    Match m_u;
-                    List<string> s_ass = new List<string>();
-                    StreamReader sr_ass = new StreamReader(new FileStream(d_load.FileName, FileMode.Open, FileAccess.Read));
-                    for(; !sr_ass.EndOfStream; ) {
-                        m_u = Regex.Match(sr_ass.ReadLine(), "(?:Dialogue|Comment):[^,]*,([^,]*),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)");
-                        if (m_u.Success) {
-                            s_ass.Add(m_u.Groups[1] + "," + m_u.Groups[2]);
-                        }
-                    }
-                    sr_ass.Close();
-                    text_Score.Text = string.Join(Environment.NewLine, s_ass);
+            if (d_load.ShowDialog() != DialogResult.OK) return;
 
-                    m_u = Regex.Match(d_load.FileName, "\\\\([^\\\\_]+)_([^\\\\_]+)\\.txt$");
-                    if (m_u.Success)
-                    {
-                        textb_SongName.Text = m_u.Groups[1].Value;
-                        switch (m_u.Groups[2].Value)
-                        {
-                            default:
-                                combo_difficulty.SelectedIndex = -1; break;
-                            case "2s":
-                                combo_difficulty.SelectedIndex = 0; break;
-                            case "2p":
-                                combo_difficulty.SelectedIndex = 1; break;
-                            case "2m":
-                                combo_difficulty.SelectedIndex = 2; break;
-                            case "4m":
-                                combo_difficulty.SelectedIndex = 3; break;
-                            case "6m":
-                                combo_difficulty.SelectedIndex = 4; break;
-                            case "mm":
-                                combo_difficulty.SelectedIndex = 5; break;
-                        }
-                    }
+            string dir_new = Path.GetDirectoryName(d_load.FileName);
+            if (dir_ASS != dir_new) { settings_changed = true; dir_ASS = dir_new; }
+            
+            output_000.Text = "";
+            openAss(d_load.FileName);
+        }
 
-                    button_Save.Text = "Save*";
-                    b_SaveTXT.Text = "Save TXT*";
-                }
-                catch (Exception err) { output_000.Text = err.Message; }
+        private void b_video_Click(object sender, EventArgs e) {
+            const string FNAME_VIDEOPARSER = "MilishitaVideoParser";
+            string fexe;
+            switch (combo_difficulty.SelectedIndex) {
+                default:
+                    fexe = $"{FNAME_VIDEOPARSER}.exe"; break;
+                case 0: case 1:
+                    fexe = $"{FNAME_VIDEOPARSER}_2p.exe"; break;
+                case 2:
+                    fexe = $"{FNAME_VIDEOPARSER}_2m.exe"; break;
+                case 3:
+                    fexe = $"{FNAME_VIDEOPARSER}_4m.exe"; break;
             }
+            if (!File.Exists(fexe)) {
+                MessageBox.Show($"Copy {fexe} to the program folder to use this function.");
+                return;
+            }
+            foreach (string fdll in NAME_DLLS) {
+                if (!File.Exists($"{fdll}.dll") && !Directory.EnumerateFiles(".", $"{fdll}-*.dll").Any()) {
+                    MessageBox.Show($"Copy {fdll} to the program folder to use this function.");
+                    return;
+                }
+            }
+
+            OpenFileDialog d_load = new OpenFileDialog {
+                Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*",
+                InitialDirectory = dir_ASS,
+            };
+            if (d_load.ShowDialog() != DialogResult.OK) return;
+
+            if (task_current != null) return;
+            DisableInput();
+
+            Process p = new Process();
+            p.StartInfo.FileName = fexe;
+            p.StartInfo.Arguments = $"\"{d_load.FileName}\"";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
+
+            task_current = new Task(() => {
+                string fass = $"{Regex.Replace(d_load.FileName, "\\.[^\\.\\\\/:]*$", "")}.ass";
+                while (!p.StandardOutput.EndOfStream) {
+                    Invoke(new Action(() => {
+                        output_000.Text += $"{p.StandardOutput.ReadLine()}{Environment.NewLine}";
+                    }));
+                }
+                Invoke(new Action(() => {
+                    output_000.Text += p.StandardError.ReadToEnd();
+                    if (File.Exists(fass)) openAss(fass);
+                    else MessageBox.Show("Parsing of the video failed.");
+                    EnableInput();
+                }));
+                task_current = null;
+            });
+            
+            output_000.Text = "";
+            task_current.Start();
         }
 
         private void textScore_Change(object sender, EventArgs e) {
             if (text_Score.Text == "") {
-                b_SaveTXT.Text = "Save TXT";
-                button_Save.Text = "Save";
+                b_SaveTXT.Text = BT_SAVE;
+                button_Make.Text = BT_MAKE;
             }
             else {
-                b_SaveTXT.Text = "Save TXT*";
-                button_Save.Text = "Save*";
+                b_SaveTXT.Text = $"{BT_SAVE}*";
+                button_Make.Text = $"{BT_MAKE}*";
             }
         }
 
-        private void b_LoadText_Click(object sender, EventArgs e)
-        {
+        private void b_LoadText_Click(object sender, EventArgs e) {
             OpenFileDialog d_load = new OpenFileDialog {
                 Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*",
                 InitialDirectory = dir_TXT,
@@ -423,8 +503,8 @@ namespace MilishitaMacro {
             if (d_load.ShowDialog() == DialogResult.OK) {
                 string dir_new = Path.GetDirectoryName(d_load.FileName);
                 if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
-                try
-                {
+                output_000.Text = "";
+                try {
                     Match m_u;
                     List<string> s_ass = new List<string>();
                     StreamReader sr_ass = new StreamReader(new FileStream(d_load.FileName, FileMode.Open, FileAccess.Read));
@@ -454,15 +534,14 @@ namespace MilishitaMacro {
                         }
                     }
 
-                    button_Save.Text = "Save*";
-                    b_SaveTXT.Text = "Save TXT";
+                    button_Make.Text = $"{BT_MAKE}*";
+                    b_SaveTXT.Text = BT_SAVE;
                 }
                 catch (Exception err) { output_000.Text = err.Message; }
             }
         }
 
-        private void b_SaveTXT_Click(object sender, EventArgs e)
-        {
+        private void b_SaveTXT_Click(object sender, EventArgs e) {
             SaveFileDialog d_save = new SaveFileDialog {
                 FileName = textb_SongName.Text + (
                     combo_difficulty.SelectedIndex == 0 ? "_2s" :
@@ -477,12 +556,13 @@ namespace MilishitaMacro {
             if (d_save.ShowDialog() == DialogResult.OK) {
                 string dir_new = Path.GetDirectoryName(d_save.FileName);
                 if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
+                output_000.Text = "";
                 try {
                     StreamWriter sw_save = new StreamWriter(new FileStream(d_save.FileName, FileMode.Create));
                     sw_save.Write(text_Score.Text);
                     sw_save.Close();
 
-                    b_SaveTXT.Text = "Save TXT";
+                    b_SaveTXT.Text = BT_SAVE;
                 }
                 catch (Exception err) { output_000.Text = err.Message; }
             }
@@ -525,7 +605,7 @@ namespace MilishitaMacro {
                                             SerializationBinder = new JsonMacroBs13.PrimitiveTypesBinder(),
                                         });
                                         JsonMacroBs13.class_Primitive[] ctrls = macro.Primitives;
-                                        if (ctrls == null) throw new Exception(f_cfg + " has invalid format.");
+                                        if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
                                         macro.Primitives = MacroCodec.ChangeAppendage(ctrls, appendage);
                                         so = JsonConvert.SerializeObject(macro);
                                     }
@@ -536,7 +616,7 @@ namespace MilishitaMacro {
                                             SerializationBinder = new JsonMacroBs17.class_ControlSchemes.GameControlsTypesBinder(),
                                         });
                                         JsonMacroBs17.class_ControlSchemes.class_GameControls[] ctrls = macro.ControlSchemes[0].GameControls;
-                                        if (ctrls == null) throw new Exception(f_cfg + " has invalid format.");
+                                        if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
                                         macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(ctrls, appendage);
                                         so = JsonConvert.SerializeObject(macro);
                                     }
@@ -559,7 +639,7 @@ namespace MilishitaMacro {
                                 case "mm": settings.nDiff = 5; break;
                             }
 
-                            StreamReader fr = new StreamReader(new FileStream(dir_TXT + "\\" + filename + ".txt", FileMode.Open, FileAccess.Read));
+                            StreamReader fr = new StreamReader(new FileStream($"{dir_TXT}\\{filename}.txt", FileMode.Open, FileAccess.Read));
                             IEnumerable<string> RL(TextReader tr) {
                                 while (tr.Peek() != -1) yield return tr.ReadLine();
                             }
@@ -592,7 +672,7 @@ namespace MilishitaMacro {
                         ++count_failure;
                         if (count_failure > 4) {
                             Invoke(new Action(() => {
-                                output_000.Text += "Too many errors. Reworking aborted." + Environment.NewLine;
+                                output_000.Text += $"Too many errors. Reworking aborted.{Environment.NewLine}";
                             }));
                             break;
                         }
@@ -603,13 +683,13 @@ namespace MilishitaMacro {
                 }
                 Invoke(new Action(() => {
                     pgbar_main.Value = 0;
-                    output_000.Text += count_success + " out of " + n_cfg + " files updated.";
+                    output_000.Text += $"{count_success} out of {n_cfg} files updated.";
                     EnableInput();
                 }));
                 task_current = null;
             });
 
-            output_000.Text = "Start reworking..." + Environment.NewLine;
+            output_000.Text = $"Start reworking...{Environment.NewLine}";
             pgbar_main.Value = 0;
             task_current.Start();
         }

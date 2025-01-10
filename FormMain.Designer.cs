@@ -24,7 +24,7 @@
         /// </summary>
         private void InitializeComponent() {
             this.output_000 = new System.Windows.Forms.TextBox();
-            this.button_Save = new System.Windows.Forms.Button();
+            this.button_Make = new System.Windows.Forms.Button();
             this.tabC_main = new System.Windows.Forms.TabControl();
             this.tab_editor = new System.Windows.Forms.TabPage();
             this.b_SaveTXT = new System.Windows.Forms.Button();
@@ -59,6 +59,7 @@
             this.num_downNum = new System.Windows.Forms.NumericUpDown();
             this.combo_difficulty = new System.Windows.Forms.ComboBox();
             this.pgbar_main = new System.Windows.Forms.ProgressBar();
+            this.b_video = new System.Windows.Forms.Button();
             this.tabC_main.SuspendLayout();
             this.tab_editor.SuspendLayout();
             this.tab_Hyrorre.SuspendLayout();
@@ -83,16 +84,16 @@
             this.output_000.Size = new System.Drawing.Size(232, 258);
             this.output_000.TabIndex = 0;
             // 
-            // button_Save
+            // button_Make
             // 
-            this.button_Save.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_Save.Location = new System.Drawing.Point(546, 54);
-            this.button_Save.Name = "button_Save";
-            this.button_Save.Size = new System.Drawing.Size(110, 34);
-            this.button_Save.TabIndex = 8;
-            this.button_Save.Text = "Save";
-            this.button_Save.UseVisualStyleBackColor = true;
-            this.button_Save.Click += new System.EventHandler(this.button_Save_Click);
+            this.button_Make.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_Make.Location = new System.Drawing.Point(546, 54);
+            this.button_Make.Name = "button_Make";
+            this.button_Make.Size = new System.Drawing.Size(110, 34);
+            this.button_Make.TabIndex = 8;
+            this.button_Make.Text = "Make";
+            this.button_Make.UseVisualStyleBackColor = true;
+            this.button_Make.Click += new System.EventHandler(this.button_Make_Click);
             // 
             // tabC_main
             // 
@@ -111,6 +112,7 @@
             // 
             // tab_editor
             // 
+            this.tab_editor.Controls.Add(this.b_video);
             this.tab_editor.Controls.Add(this.b_SaveTXT);
             this.tab_editor.Controls.Add(this.b_LoadText);
             this.tab_editor.Controls.Add(this.b_ass);
@@ -127,33 +129,33 @@
             // b_SaveTXT
             // 
             this.b_SaveTXT.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.b_SaveTXT.Location = new System.Drawing.Point(246, 294);
+            this.b_SaveTXT.Location = new System.Drawing.Point(106, 295);
             this.b_SaveTXT.Name = "b_SaveTXT";
-            this.b_SaveTXT.Size = new System.Drawing.Size(101, 32);
+            this.b_SaveTXT.Size = new System.Drawing.Size(80, 32);
             this.b_SaveTXT.TabIndex = 14;
-            this.b_SaveTXT.Text = "Save TXT";
+            this.b_SaveTXT.Text = "Save";
             this.b_SaveTXT.UseVisualStyleBackColor = true;
             this.b_SaveTXT.Click += new System.EventHandler(this.b_SaveTXT_Click);
             // 
             // b_LoadText
             // 
             this.b_LoadText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.b_LoadText.Location = new System.Drawing.Point(129, 294);
+            this.b_LoadText.Location = new System.Drawing.Point(20, 294);
             this.b_LoadText.Name = "b_LoadText";
-            this.b_LoadText.Size = new System.Drawing.Size(101, 33);
+            this.b_LoadText.Size = new System.Drawing.Size(80, 33);
             this.b_LoadText.TabIndex = 13;
-            this.b_LoadText.Text = "Load TXT";
+            this.b_LoadText.Text = "Load";
             this.b_LoadText.UseVisualStyleBackColor = true;
             this.b_LoadText.Click += new System.EventHandler(this.b_LoadText_Click);
             // 
             // b_ass
             // 
             this.b_ass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.b_ass.Location = new System.Drawing.Point(20, 294);
+            this.b_ass.Location = new System.Drawing.Point(192, 294);
             this.b_ass.Name = "b_ass";
             this.b_ass.Size = new System.Drawing.Size(97, 33);
             this.b_ass.TabIndex = 12;
-            this.b_ass.Text = "Load ASS";
+            this.b_ass.Text = "Open ASS";
             this.b_ass.UseVisualStyleBackColor = true;
             this.b_ass.Click += new System.EventHandler(this.b_ass_Click);
             // 
@@ -485,6 +487,17 @@
             this.pgbar_main.Size = new System.Drawing.Size(232, 23);
             this.pgbar_main.TabIndex = 11;
             // 
+            // b_video
+            // 
+            this.b_video.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.b_video.Location = new System.Drawing.Point(295, 294);
+            this.b_video.Name = "b_video";
+            this.b_video.Size = new System.Drawing.Size(110, 33);
+            this.b_video.TabIndex = 15;
+            this.b_video.Text = "Open video";
+            this.b_video.UseVisualStyleBackColor = true;
+            this.b_video.Click += new System.EventHandler(this.b_video_Click);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -493,7 +506,7 @@
             this.Controls.Add(this.pgbar_main);
             this.Controls.Add(this.combo_difficulty);
             this.Controls.Add(this.tabC_main);
-            this.Controls.Add(this.button_Save);
+            this.Controls.Add(this.button_Make);
             this.Controls.Add(this.output_000);
             this.Name = "FormMain";
             this.Text = "MilishitaMacro";
@@ -520,7 +533,7 @@
         #endregion
 
         private System.Windows.Forms.TextBox output_000;
-        private System.Windows.Forms.Button button_Save;
+        private System.Windows.Forms.Button button_Make;
         private System.Windows.Forms.TabControl tabC_main;
         private System.Windows.Forms.TabPage tab_editor;
         private System.Windows.Forms.ComboBox combo_difficulty;
@@ -555,6 +568,7 @@
         private System.Windows.Forms.NumericUpDown num_nCmdScpt;
         private System.Windows.Forms.Label lb_desyncOffset;
         private System.Windows.Forms.ProgressBar pgbar_main;
+        private System.Windows.Forms.Button b_video;
     }
 }
 

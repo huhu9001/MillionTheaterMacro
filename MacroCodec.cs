@@ -312,7 +312,7 @@ namespace MilishitaMacro {
                     Convert.ToInt32(m_u.Groups[2].Value, 10) * 60000 +
                     Convert.ToInt32(Convert.ToDouble(m_u.Groups[3].Value) * 1000);
             }
-            throw new Exception("Invalid timestamp: \"" + _t + "\".");
+            throw new Exception($"Invalid timestamp: \"{_t}\".");
         }
 
         static int FromTicksToMilisecond(int _t, JsonScoreMltd.class_Conductor[] _tempo) {
@@ -322,10 +322,10 @@ namespace MilishitaMacro {
             if (!tems.MoveNext()) throw new Exception("BPM information is missing.");
             JsonScoreMltd.class_Conductor tem = tems.Current, tem_next;
             while (tems.MoveNext() && (tem_next = tems.Current).Ticks < _t) {
-                time += (int)((ulong)(tem_next.Ticks - tem.Ticks) * 1000 / (ulong)(tem.Tempo * tempo_const));
+                time += (int)((ulong)(tem_next.Ticks - tem.Ticks) * 1000 / (tem.Tempo * tempo_const));
                 tem = tem_next;
             }
-            time += (int)((ulong)(_t - tem.Ticks) * 1000 / (ulong)(tem.Tempo * tempo_const));
+            time += (int)((ulong)(_t - tem.Ticks) * 1000 / (tem.Tempo * tempo_const));
             return time;
         }
 
@@ -333,7 +333,7 @@ namespace MilishitaMacro {
             string FromSingleNote(JsonScoreMltd.class_Note note) {
                 string time = FromTicksToMilisecond(note.Ticks, score.Conductors).ToString();
                 string x_nobrac = (note.EndX + 1).ToString();
-                string x = x_nobrac.Length == 1 ? x_nobrac : "(" + x_nobrac + ")" ;
+                string x = x_nobrac.Length == 1 ? x_nobrac : $"({x_nobrac})" ;
                 return time + ',' + x;
             }
 
@@ -376,7 +376,7 @@ namespace MilishitaMacro {
                     for (int i1 = 0; i1 < note.FollowingNotes.Length - 1; ++i1) {
                         JsonScoreMltd.class_Note note_following = note.FollowingNotes[i1];
                         string dex_following = (IsLeft(note_following.EndX) ? 0 : 1) == dexterity ? "" : dexterity_suffix;
-                        yield return FromSingleNote(note.FollowingNotes[i1]) + dex_following + "=";
+                        yield return $"{FromSingleNote(note.FollowingNotes[i1])}{dex_following}=";
                     }
                     JsonScoreMltd.class_Note note_last = note.FollowingNotes.Last();
                     string dex_last = (IsLeft(note_last.EndX) ? 0 : 1) == dexterity ? "" : dexterity_suffix;
@@ -425,12 +425,10 @@ namespace MilishitaMacro {
                                         command1.Add(new MacroCommand(time, (int)MacroCommand.Type.DOWN, x, y));
                                         command1.Add(new MacroCommand(time + 5, (int)MacroCommand.Type.UP, x, y));
                                         break;
-                                    case 'l': case 'L': type = 1; goto label_flick;
-                                    case 'u': case 'U': type = 2; goto label_flick;
-                                    case 'r':
-                                    case 'R':
-                                        type = 3;
-                                    label_flick:
+                                    case 'l': case 'L': type = 1; goto CASE_FLICK;
+                                    case 'u': case 'U': type = 2; goto CASE_FLICK;
+                                    case 'r': case 'R': type = 3;
+                                    CASE_FLICK:
                                         {
                                             double x_flick = diff.x_flick[type];
                                             double y_flick = diff.y_flick[type];
@@ -463,7 +461,7 @@ namespace MilishitaMacro {
                     }
                 }
                 else if (Regex.Match(line, "\\S").Success) {
-                    throw new Exception("Invalid Input Line: \"" + line + "\".");
+                    throw new Exception($"Invalid Input Line: \"{line}\".");
                 }
             }
 
@@ -572,20 +570,23 @@ namespace MilishitaMacro {
 
             //desync management 2: linear compensation
             foreach (List<MacroCommand> command1 in commandN) {
-                for (int i0 = 0, n_delay = 0; i0 < command1.Count - 1; ++i0) {
-                    switch (command1[i0].type) {
+                int n_delay = 0;
+                MacroCommand mc = command1.FirstOrDefault();
+                foreach (MacroCommand mc_next in command1.Skip(1)) {
+                    switch (mc.type) {
                         case (int)MacroCommand.Type.DOWN:
                         case (int)MacroCommand.Type.UP:
                             n_delay += settings.numDown; // 193
                             break;
                         case (int)MacroCommand.Type.MOVE:
-                                n_delay += settings.numMove; // 183
+                            n_delay += settings.numMove; // 183
                             break;
                     }
                     // 256
-                    int time_this = command1[i0].time;
-                    int time_next_adjusted = command1[i0 + 1].time - n_delay / settings.den;
-                    command1[i0 + 1].time = time_next_adjusted >= time_this ? time_next_adjusted : time_this;
+                    int time_this = mc.time;
+                    int time_next_adjusted = mc_next.time - n_delay / settings.den;
+                    mc_next.time = time_next_adjusted >= time_this ? time_next_adjusted : time_this;
+                    mc = mc_next;
                 }
             }
             
