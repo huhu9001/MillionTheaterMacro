@@ -17,16 +17,6 @@ namespace MilishitaMacro {
     public partial class FormMain : Form {
         private const string BT_SAVE = "Save";
         private const string BT_MAKE = "Make";
-        private static readonly string[] NAME_DLLS = new string[] {
-            "avcodec",
-            "avdevice",
-            "avfilter",
-            "avformat",
-            "avutil",
-            "postproc",
-            "swresample",
-            "swscale",
-        };
 
         SongName[] songs;
         JsonAppendage appendage;
@@ -88,6 +78,7 @@ namespace MilishitaMacro {
                 dir_CFG[3] = (m = Regex.Match(txt_ini, @"^\s*dirCFG4M\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
                 dir_CFG[4] = (m = Regex.Match(txt_ini, @"^\s*dirCFG6M\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
                 dir_CFG[5] = (m = Regex.Match(txt_ini, @"^\s*dirCFGMM\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
+                tb_vidparserDir.Text = (m = Regex.Match(txt_ini, @"^\s*dirMilishitaVideoParser\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? m.Groups[1].Value : "";
                 int ParseIntOr(string s, int def) { try { return int.Parse(s); } catch (Exception) { return def; } }
                 combo_ver.SelectedIndex = (m = Regex.Match(txt_ini, @"^\s*verMacro\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? ParseIntOr(m.Groups[1].Value, 0) : 0;
                 num_downNum.Value = (m = Regex.Match(txt_ini, @"^\s*delayClick\s*=\s*(.+?)\s*$", RegexOptions.Multiline)).Success ? ParseIntOr(m.Groups[1].Value, 0) : 0;
@@ -158,6 +149,7 @@ namespace MilishitaMacro {
                     if ((s = dir_CFG[3].Trim()) != "") saved_dirs.WriteLine($"dirCFG4M={s}");
                     if ((s = dir_CFG[4].Trim()) != "") saved_dirs.WriteLine($"dirCFG6M={s}");
                     if ((s = dir_CFG[5].Trim()) != "") saved_dirs.WriteLine($"dirCFGMM={s}");
+                    if ((s = tb_vidparserDir.Text.Trim()) != "") saved_dirs.WriteLine($"dirMilishitaVideoParser={s}");
                     if (combo_ver.SelectedIndex > 0) saved_dirs.WriteLine($"verMacro={combo_ver.SelectedIndex}");
                     if (num_downNum.Value > 0) saved_dirs.WriteLine($"delayClick={num_downNum.Value}");
                     if (num_moveNum.Value > 0) saved_dirs.WriteLine($"delayMove={num_moveNum.Value}");
@@ -286,12 +278,7 @@ namespace MilishitaMacro {
                     Invoke(new Action(() => { output_000.Text += $"ParsingJSON...{Environment.NewLine}"; }));
 
                     JsonScoreMltd js_notes = JsonConvert.DeserializeObject<JsonScoreMltd>(string_sr);
-                    StringBuilder strb = new StringBuilder();
-                    foreach (string line in MacroCodec.FromScoreMltd(js_notes, index_diff_selected)) {
-                        strb.Append(line);
-                        strb.Append(Environment.NewLine);
-                    }
-                    text_Score.Text = strb.ToString();
+                    text_Score.Lines = MacroCodec.FromScoreMltd(js_notes, index_diff_selected).ToArray();
 
                     Invoke(new Action(() => {
                         output_000.Text += "Success.";
@@ -424,26 +411,23 @@ namespace MilishitaMacro {
 
         private void b_video_Click(object sender, EventArgs e) {
             const string FNAME_VIDEOPARSER = "MilishitaVideoParser";
+            string dir_parser = tb_vidparserDir.Text;
             string fexe;
             switch (combo_difficulty.SelectedIndex) {
                 default:
-                    fexe = $"{FNAME_VIDEOPARSER}.exe"; break;
+                    fexe = Path.Combine(dir_parser, $"{FNAME_VIDEOPARSER}.exe"); break;
                 case 0: case 1:
-                    fexe = $"{FNAME_VIDEOPARSER}_2p.exe"; break;
+                    fexe = Path.Combine(dir_parser, $"{FNAME_VIDEOPARSER}_2p.exe"); break;
                 case 2:
-                    fexe = $"{FNAME_VIDEOPARSER}_2m.exe"; break;
+                    fexe = Path.Combine(dir_parser, $"{FNAME_VIDEOPARSER}_2m.exe"); break;
                 case 3:
-                    fexe = $"{FNAME_VIDEOPARSER}_4m.exe"; break;
+                    fexe = Path.Combine(dir_parser, $"{FNAME_VIDEOPARSER}_4m.exe"); break;
             }
             if (!File.Exists(fexe)) {
-                MessageBox.Show($"Copy {fexe} to the program folder to use this function.");
+                const string NO_PARSER1 = " is needed to use this function. The following DLLs may also be needed:";
+                const string NO_PARSER2 = "avcodec-*.dll, avformat-*.dll, swscale-*.dll, imgutils-*.dll";
+                MessageBox.Show($"{fexe}{NO_PARSER1}{Environment.NewLine}{NO_PARSER2}");
                 return;
-            }
-            foreach (string fdll in NAME_DLLS) {
-                if (!File.Exists($"{fdll}.dll") && !Directory.EnumerateFiles(".", $"{fdll}-*.dll").Any()) {
-                    MessageBox.Show($"Copy {fdll} to the program folder to use this function.");
-                    return;
-                }
             }
 
             OpenFileDialog d_load = new OpenFileDialog {
@@ -458,10 +442,10 @@ namespace MilishitaMacro {
             Process p = new Process();
             p.StartInfo.FileName = fexe;
             p.StartInfo.Arguments = $"\"{d_load.FileName}\"";
+            p.StartInfo.CreateNoWindow = true;
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.CreateNoWindow = true;
             p.Start();
 
             task_current = new Task(() => {
@@ -471,10 +455,14 @@ namespace MilishitaMacro {
                         output_000.Text += $"{p.StandardOutput.ReadLine()}{Environment.NewLine}";
                     }));
                 }
+                p.WaitForExit();
                 Invoke(new Action(() => {
                     output_000.Text += p.StandardError.ReadToEnd();
-                    if (File.Exists(fass)) openAss(fass);
-                    else MessageBox.Show("Parsing of the video failed.");
+                    if (p.ExitCode == 0) {
+                        openAss(fass);
+                        tabC_main.SelectedIndex = 0;
+                    }
+                    else MessageBox.Show($"Parser exited with a code of 0x{p.ExitCode:X}. This was probably due to missing DLLs.");
                     EnableInput();
                 }));
                 task_current = null;
@@ -698,6 +686,12 @@ namespace MilishitaMacro {
             FolderBrowserDialog d_load = new FolderBrowserDialog {};
             if (d_load.ShowDialog() == DialogResult.OK) {
                 tb_reworkF.Text = d_load.SelectedPath;
+            }
+        }
+        private void b_locateParser_Click(object sender, EventArgs e) {
+            FolderBrowserDialog d_load = new FolderBrowserDialog {};
+            if (d_load.ShowDialog() == DialogResult.OK) {
+                tb_vidparserDir.Text = d_load.SelectedPath;
             }
         }
 

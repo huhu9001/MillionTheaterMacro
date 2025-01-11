@@ -32,10 +32,16 @@
             this.b_ass = new System.Windows.Forms.Button();
             this.textb_SongName = new System.Windows.Forms.TextBox();
             this.text_Score = new System.Windows.Forms.TextBox();
-            this.tab_Hyrorre = new System.Windows.Forms.TabPage();
-            this.button_updateSong = new System.Windows.Forms.Button();
-            this.button_Download = new System.Windows.Forms.Button();
+            this.tab_source = new System.Windows.Forms.TabPage();
+            this.group_MilishitaVideoParser = new System.Windows.Forms.GroupBox();
+            this.b_locateParser = new System.Windows.Forms.Button();
+            this.lb_vidparserDir = new System.Windows.Forms.Label();
+            this.tb_vidparserDir = new System.Windows.Forms.TextBox();
+            this.b_video = new System.Windows.Forms.Button();
+            this.group_hyrrore = new System.Windows.Forms.GroupBox();
             this.combo_SongName = new System.Windows.Forms.ComboBox();
+            this.button_Download = new System.Windows.Forms.Button();
+            this.button_updateSong = new System.Windows.Forms.Button();
             this.tab_Rework = new System.Windows.Forms.TabPage();
             this.cb_old = new System.Windows.Forms.CheckBox();
             this.b_rework = new System.Windows.Forms.Button();
@@ -59,10 +65,11 @@
             this.num_downNum = new System.Windows.Forms.NumericUpDown();
             this.combo_difficulty = new System.Windows.Forms.ComboBox();
             this.pgbar_main = new System.Windows.Forms.ProgressBar();
-            this.b_video = new System.Windows.Forms.Button();
             this.tabC_main.SuspendLayout();
             this.tab_editor.SuspendLayout();
-            this.tab_Hyrorre.SuspendLayout();
+            this.tab_source.SuspendLayout();
+            this.group_MilishitaVideoParser.SuspendLayout();
+            this.group_hyrrore.SuspendLayout();
             this.tab_Rework.SuspendLayout();
             this.tab_Settings.SuspendLayout();
             this.gb_delays.SuspendLayout();
@@ -101,7 +108,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabC_main.Controls.Add(this.tab_editor);
-            this.tabC_main.Controls.Add(this.tab_Hyrorre);
+            this.tabC_main.Controls.Add(this.tab_source);
             this.tabC_main.Controls.Add(this.tab_Rework);
             this.tabC_main.Controls.Add(this.tab_Settings);
             this.tabC_main.Location = new System.Drawing.Point(12, 16);
@@ -112,7 +119,6 @@
             // 
             // tab_editor
             // 
-            this.tab_editor.Controls.Add(this.b_video);
             this.tab_editor.Controls.Add(this.b_SaveTXT);
             this.tab_editor.Controls.Add(this.b_LoadText);
             this.tab_editor.Controls.Add(this.b_ass);
@@ -129,9 +135,9 @@
             // b_SaveTXT
             // 
             this.b_SaveTXT.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.b_SaveTXT.Location = new System.Drawing.Point(106, 295);
+            this.b_SaveTXT.Location = new System.Drawing.Point(126, 294);
             this.b_SaveTXT.Name = "b_SaveTXT";
-            this.b_SaveTXT.Size = new System.Drawing.Size(80, 32);
+            this.b_SaveTXT.Size = new System.Drawing.Size(100, 32);
             this.b_SaveTXT.TabIndex = 14;
             this.b_SaveTXT.Text = "Save";
             this.b_SaveTXT.UseVisualStyleBackColor = true;
@@ -142,7 +148,7 @@
             this.b_LoadText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.b_LoadText.Location = new System.Drawing.Point(20, 294);
             this.b_LoadText.Name = "b_LoadText";
-            this.b_LoadText.Size = new System.Drawing.Size(80, 33);
+            this.b_LoadText.Size = new System.Drawing.Size(100, 33);
             this.b_LoadText.TabIndex = 13;
             this.b_LoadText.Text = "Load";
             this.b_LoadText.UseVisualStyleBackColor = true;
@@ -151,9 +157,9 @@
             // b_ass
             // 
             this.b_ass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.b_ass.Location = new System.Drawing.Point(192, 294);
+            this.b_ass.Location = new System.Drawing.Point(232, 294);
             this.b_ass.Name = "b_ass";
-            this.b_ass.Size = new System.Drawing.Size(97, 33);
+            this.b_ass.Size = new System.Drawing.Size(110, 33);
             this.b_ass.TabIndex = 12;
             this.b_ass.Text = "Open ASS";
             this.b_ass.UseVisualStyleBackColor = true;
@@ -182,39 +188,85 @@
             this.text_Score.TabIndex = 0;
             this.text_Score.TextChanged += new System.EventHandler(this.textScore_Change);
             // 
-            // tab_Hyrorre
+            // tab_source
             // 
-            this.tab_Hyrorre.Controls.Add(this.button_updateSong);
-            this.tab_Hyrorre.Controls.Add(this.button_Download);
-            this.tab_Hyrorre.Controls.Add(this.combo_SongName);
-            this.tab_Hyrorre.Location = new System.Drawing.Point(4, 28);
-            this.tab_Hyrorre.Name = "tab_Hyrorre";
-            this.tab_Hyrorre.Padding = new System.Windows.Forms.Padding(3);
-            this.tab_Hyrorre.Size = new System.Drawing.Size(511, 348);
-            this.tab_Hyrorre.TabIndex = 0;
-            this.tab_Hyrorre.Text = "Hyrorre";
-            this.tab_Hyrorre.UseVisualStyleBackColor = true;
+            this.tab_source.Controls.Add(this.group_MilishitaVideoParser);
+            this.tab_source.Controls.Add(this.group_hyrrore);
+            this.tab_source.Location = new System.Drawing.Point(4, 28);
+            this.tab_source.Name = "tab_source";
+            this.tab_source.Padding = new System.Windows.Forms.Padding(3);
+            this.tab_source.Size = new System.Drawing.Size(511, 348);
+            this.tab_source.TabIndex = 0;
+            this.tab_source.Text = "Source";
+            this.tab_source.UseVisualStyleBackColor = true;
             // 
-            // button_updateSong
+            // group_MilishitaVideoParser
             // 
-            this.button_updateSong.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button_updateSong.Location = new System.Drawing.Point(30, 283);
-            this.button_updateSong.Name = "button_updateSong";
-            this.button_updateSong.Size = new System.Drawing.Size(176, 36);
-            this.button_updateSong.TabIndex = 9;
-            this.button_updateSong.Text = "Update song list";
-            this.button_updateSong.UseVisualStyleBackColor = true;
-            this.button_updateSong.Click += new System.EventHandler(this.button_updateSong_Click);
+            this.group_MilishitaVideoParser.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.group_MilishitaVideoParser.Controls.Add(this.b_locateParser);
+            this.group_MilishitaVideoParser.Controls.Add(this.lb_vidparserDir);
+            this.group_MilishitaVideoParser.Controls.Add(this.tb_vidparserDir);
+            this.group_MilishitaVideoParser.Controls.Add(this.b_video);
+            this.group_MilishitaVideoParser.Location = new System.Drawing.Point(6, 112);
+            this.group_MilishitaVideoParser.Name = "group_MilishitaVideoParser";
+            this.group_MilishitaVideoParser.Size = new System.Drawing.Size(499, 102);
+            this.group_MilishitaVideoParser.TabIndex = 17;
+            this.group_MilishitaVideoParser.TabStop = false;
+            this.group_MilishitaVideoParser.Text = "MilishitaVideoParser";
             // 
-            // button_Download
+            // b_locateParser
             // 
-            this.button_Download.Location = new System.Drawing.Point(30, 80);
-            this.button_Download.Name = "button_Download";
-            this.button_Download.Size = new System.Drawing.Size(110, 35);
-            this.button_Download.TabIndex = 2;
-            this.button_Download.Text = "Download";
-            this.button_Download.UseVisualStyleBackColor = true;
-            this.button_Download.Click += new System.EventHandler(this.button_Download_Click);
+            this.b_locateParser.Location = new System.Drawing.Point(142, 61);
+            this.b_locateParser.Name = "b_locateParser";
+            this.b_locateParser.Size = new System.Drawing.Size(130, 32);
+            this.b_locateParser.TabIndex = 18;
+            this.b_locateParser.Text = "Locate .exe";
+            this.b_locateParser.UseVisualStyleBackColor = true;
+            this.b_locateParser.Click += new System.EventHandler(this.b_locateParser_Click);
+            // 
+            // lb_vidparserDir
+            // 
+            this.lb_vidparserDir.AutoSize = true;
+            this.lb_vidparserDir.Location = new System.Drawing.Point(6, 30);
+            this.lb_vidparserDir.Name = "lb_vidparserDir";
+            this.lb_vidparserDir.Size = new System.Drawing.Size(89, 18);
+            this.lb_vidparserDir.TabIndex = 17;
+            this.lb_vidparserDir.Text = ".exe dir:";
+            // 
+            // tb_vidparserDir
+            // 
+            this.tb_vidparserDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tb_vidparserDir.Location = new System.Drawing.Point(101, 27);
+            this.tb_vidparserDir.Name = "tb_vidparserDir";
+            this.tb_vidparserDir.Size = new System.Drawing.Size(392, 28);
+            this.tb_vidparserDir.TabIndex = 16;
+            this.tb_vidparserDir.TextChanged += new System.EventHandler(this.SettingControlsChanged);
+            // 
+            // b_video
+            // 
+            this.b_video.Location = new System.Drawing.Point(6, 61);
+            this.b_video.Name = "b_video";
+            this.b_video.Size = new System.Drawing.Size(130, 32);
+            this.b_video.TabIndex = 15;
+            this.b_video.Text = "Parse video";
+            this.b_video.UseVisualStyleBackColor = true;
+            this.b_video.Click += new System.EventHandler(this.b_video_Click);
+            // 
+            // group_hyrrore
+            // 
+            this.group_hyrrore.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.group_hyrrore.Controls.Add(this.combo_SongName);
+            this.group_hyrrore.Controls.Add(this.button_Download);
+            this.group_hyrrore.Controls.Add(this.button_updateSong);
+            this.group_hyrrore.Location = new System.Drawing.Point(6, 6);
+            this.group_hyrrore.Name = "group_hyrrore";
+            this.group_hyrrore.Size = new System.Drawing.Size(499, 100);
+            this.group_hyrrore.TabIndex = 16;
+            this.group_hyrrore.TabStop = false;
+            this.group_hyrrore.Text = "million.hyrorre.com";
             // 
             // combo_SongName
             // 
@@ -223,10 +275,30 @@
             this.combo_SongName.DisplayMember = "fullName";
             this.combo_SongName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.combo_SongName.FormattingEnabled = true;
-            this.combo_SongName.Location = new System.Drawing.Point(30, 25);
+            this.combo_SongName.Location = new System.Drawing.Point(6, 27);
             this.combo_SongName.Name = "combo_SongName";
-            this.combo_SongName.Size = new System.Drawing.Size(444, 26);
+            this.combo_SongName.Size = new System.Drawing.Size(487, 26);
             this.combo_SongName.TabIndex = 8;
+            // 
+            // button_Download
+            // 
+            this.button_Download.Location = new System.Drawing.Point(6, 59);
+            this.button_Download.Name = "button_Download";
+            this.button_Download.Size = new System.Drawing.Size(110, 32);
+            this.button_Download.TabIndex = 2;
+            this.button_Download.Text = "Download";
+            this.button_Download.UseVisualStyleBackColor = true;
+            this.button_Download.Click += new System.EventHandler(this.button_Download_Click);
+            // 
+            // button_updateSong
+            // 
+            this.button_updateSong.Location = new System.Drawing.Point(122, 59);
+            this.button_updateSong.Name = "button_updateSong";
+            this.button_updateSong.Size = new System.Drawing.Size(176, 32);
+            this.button_updateSong.TabIndex = 9;
+            this.button_updateSong.Text = "Update song list";
+            this.button_updateSong.UseVisualStyleBackColor = true;
+            this.button_updateSong.Click += new System.EventHandler(this.button_updateSong_Click);
             // 
             // tab_Rework
             // 
@@ -487,17 +559,6 @@
             this.pgbar_main.Size = new System.Drawing.Size(232, 23);
             this.pgbar_main.TabIndex = 11;
             // 
-            // b_video
-            // 
-            this.b_video.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.b_video.Location = new System.Drawing.Point(295, 294);
-            this.b_video.Name = "b_video";
-            this.b_video.Size = new System.Drawing.Size(110, 33);
-            this.b_video.TabIndex = 15;
-            this.b_video.Text = "Open video";
-            this.b_video.UseVisualStyleBackColor = true;
-            this.b_video.Click += new System.EventHandler(this.b_video_Click);
-            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -514,7 +575,10 @@
             this.tabC_main.ResumeLayout(false);
             this.tab_editor.ResumeLayout(false);
             this.tab_editor.PerformLayout();
-            this.tab_Hyrorre.ResumeLayout(false);
+            this.tab_source.ResumeLayout(false);
+            this.group_MilishitaVideoParser.ResumeLayout(false);
+            this.group_MilishitaVideoParser.PerformLayout();
+            this.group_hyrrore.ResumeLayout(false);
             this.tab_Rework.ResumeLayout(false);
             this.tab_Rework.PerformLayout();
             this.tab_Settings.ResumeLayout(false);
@@ -539,7 +603,7 @@
         private System.Windows.Forms.ComboBox combo_difficulty;
         private System.Windows.Forms.TextBox text_Score;
         private System.Windows.Forms.TextBox textb_SongName;
-        private System.Windows.Forms.TabPage tab_Hyrorre;
+        private System.Windows.Forms.TabPage tab_source;
         private System.Windows.Forms.Button button_updateSong;
         private System.Windows.Forms.Button button_Download;
         private System.Windows.Forms.ComboBox combo_SongName;
@@ -569,6 +633,11 @@
         private System.Windows.Forms.Label lb_desyncOffset;
         private System.Windows.Forms.ProgressBar pgbar_main;
         private System.Windows.Forms.Button b_video;
+        private System.Windows.Forms.GroupBox group_hyrrore;
+        private System.Windows.Forms.GroupBox group_MilishitaVideoParser;
+        private System.Windows.Forms.Button b_locateParser;
+        private System.Windows.Forms.Label lb_vidparserDir;
+        private System.Windows.Forms.TextBox tb_vidparserDir;
     }
 }
 
