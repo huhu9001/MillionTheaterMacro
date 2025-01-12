@@ -215,12 +215,12 @@ namespace MilishitaMacro {
                     numMove = Convert.ToInt32(num_moveNum.Value),
                     den = Convert.ToInt32(num_Den.Value),
                 };
-                
-                output_000.Text = "";
+
+                tb_output.Clear();
                 try {
                     string output;
                     switch (settings.version) {
-                        default: output_000.Text += "Macro version error."; return;
+                        default: tb_output.AppendText("Macro version error."); return;
                         case (int)MacroVersion.Value.BluestacksParser13:
                             output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV13(
                                 text_Score.Lines,
@@ -241,7 +241,7 @@ namespace MilishitaMacro {
                     sw_save.Write(output);
                     sw_save.Close();
                 }
-                catch (Exception err) { output_000.Text += err.Message; }
+                catch (Exception err) { tb_output.AppendText(err.Message); }
                 
                 button_Make.Text = BT_MAKE;
             }
@@ -260,11 +260,11 @@ namespace MilishitaMacro {
                     HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create($"https://million.hyrorre.com/musics/{songs[index_song_selected].urlName}/{CodecSettings.diffs[index_diff_selected].urlName}");
                     xhr.Method = "GET";
 
-                    Invoke(new Action(() => { output_000.Text = $"Connecting... {Environment.NewLine}"; }));
+                    Invoke(new Action(() => { tb_output.Text = $"Connecting... {Environment.NewLine}"; }));
                     
                     HttpWebResponse xhrr = xhr.GetResponse() as HttpWebResponse;
 
-                    Invoke(new Action(() => { output_000.Text += $"Downloading...{Environment.NewLine}"; }));
+                    Invoke(new Action(() => { tb_output.AppendText($"Downloading...{Environment.NewLine}"); }));
 
                     StreamReader reader = new StreamReader(xhrr.GetResponseStream());
                     string string_sr = ReadWithProgress(reader, xhrr.ContentLength);
@@ -275,13 +275,13 @@ namespace MilishitaMacro {
 
                     string_sr = Regex.Replace(m_u.Value, "&quot;", "\"");
 
-                    Invoke(new Action(() => { output_000.Text += $"ParsingJSON...{Environment.NewLine}"; }));
+                    Invoke(new Action(() => { tb_output.AppendText($"ParsingJSON...{Environment.NewLine}"); }));
 
                     JsonScoreMltd js_notes = JsonConvert.DeserializeObject<JsonScoreMltd>(string_sr);
                     text_Score.Lines = MacroCodec.FromScoreMltd(js_notes, index_diff_selected).ToArray();
 
                     Invoke(new Action(() => {
-                        output_000.Text += "Success.";
+                        tb_output.AppendText("Success.");
                         EnableInput();
 
                         button_Make.Text = $"{BT_MAKE}*";
@@ -291,7 +291,7 @@ namespace MilishitaMacro {
                 }
                 catch (Exception err) {
                     Invoke(new Action(() => {
-                        output_000.Text += err.Message;
+                        tb_output.AppendText(err.Message);
                         EnableInput();
                     }));
                 }
@@ -309,17 +309,17 @@ namespace MilishitaMacro {
                     HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/");
                     xhr.Method = "GET";
 
-                    Invoke(new Action(() => { output_000.Text = $"Connecting... {Environment.NewLine}"; }));
+                    Invoke(new Action(() => { tb_output.Text = $"Connecting... {Environment.NewLine}"; }));
 
                     HttpWebResponse xhrr = (HttpWebResponse)xhr.GetResponse();
 
-                    Invoke(new Action(() => { output_000.Text += $"Downloading...{Environment.NewLine}"; }));
+                    Invoke(new Action(() => { tb_output.AppendText($"Downloading...{Environment.NewLine}"); }));
 
                     StreamReader reader = new StreamReader(xhrr.GetResponseStream());
                     string string_sr = ReadWithProgress(reader, xhrr.ContentLength);
                     reader.Close();
 
-                    Invoke(new Action(() => { output_000.Text += $"ProcessingText...{Environment.NewLine}"; }));
+                    Invoke(new Action(() => { tb_output.AppendText($"ProcessingText...{Environment.NewLine}"); }));
 
                     Match m_u = Regex.Match(string_sr, "(?<=<ul id=\"musiclist\" class=\"list\">)[\\s\\S]*?(?=</ul>)");
                     if (!m_u.Success) throw new Exception("Songs information is not found.");
@@ -337,13 +337,13 @@ namespace MilishitaMacro {
                     b_changed_songname = true;
                     Invoke(new Action(() => {
                         combo_SongName.DataSource = songs;
-                        output_000.Text += "Success.";
+                        tb_output.AppendText("Success.");
                         EnableInput();
                     }));
                 }
                 catch (Exception err) {
                     Invoke(new Action(() => {
-                        output_000.Text += err.Message;
+                        tb_output.AppendText(err.Message);
                         EnableInput();
                     }));
                 }
@@ -392,7 +392,7 @@ namespace MilishitaMacro {
                 button_Make.Text = $"{BT_MAKE}*";
                 b_SaveTXT.Text = $"{BT_SAVE}*";
             }
-            catch (Exception err) { output_000.Text = err.Message; }
+            catch (Exception err) { tb_output.Text = err.Message; }
         }
 
         private void b_ass_Click(object sender, EventArgs e) {
@@ -405,7 +405,7 @@ namespace MilishitaMacro {
             string dir_new = Path.GetDirectoryName(d_load.FileName);
             if (dir_ASS != dir_new) { settings_changed = true; dir_ASS = dir_new; }
             
-            output_000.Text = "";
+            tb_output.Clear();
             openAss(d_load.FileName);
         }
 
@@ -446,18 +446,22 @@ namespace MilishitaMacro {
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.RedirectStandardError = true;
-            p.Start();
+            try { p.Start(); } catch (Exception err) {
+                tb_output.Text = err.Message;
+                EnableInput();
+                return;
+            }
 
             task_current = new Task(() => {
                 string fass = $"{Regex.Replace(d_load.FileName, "\\.[^\\.\\\\/:]*$", "")}.ass";
                 while (!p.StandardOutput.EndOfStream) {
                     Invoke(new Action(() => {
-                        output_000.Text += $"{p.StandardOutput.ReadLine()}{Environment.NewLine}";
+                        tb_output.AppendText($"{p.StandardOutput.ReadLine()}{Environment.NewLine}");
                     }));
                 }
                 p.WaitForExit();
                 Invoke(new Action(() => {
-                    output_000.Text += p.StandardError.ReadToEnd();
+                    tb_output.AppendText(p.StandardError.ReadToEnd());
                     if (p.ExitCode == 0) {
                         openAss(fass);
                         tabC_main.SelectedIndex = 0;
@@ -468,7 +472,7 @@ namespace MilishitaMacro {
                 task_current = null;
             });
             
-            output_000.Text = "";
+            tb_output.Clear();
             task_current.Start();
         }
 
@@ -491,7 +495,7 @@ namespace MilishitaMacro {
             if (d_load.ShowDialog() == DialogResult.OK) {
                 string dir_new = Path.GetDirectoryName(d_load.FileName);
                 if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
-                output_000.Text = "";
+                tb_output.Clear();
                 try {
                     Match m_u;
                     List<string> s_ass = new List<string>();
@@ -525,7 +529,7 @@ namespace MilishitaMacro {
                     button_Make.Text = $"{BT_MAKE}*";
                     b_SaveTXT.Text = BT_SAVE;
                 }
-                catch (Exception err) { output_000.Text = err.Message; }
+                catch (Exception err) { tb_output.Text = err.Message; }
             }
         }
 
@@ -544,7 +548,7 @@ namespace MilishitaMacro {
             if (d_save.ShowDialog() == DialogResult.OK) {
                 string dir_new = Path.GetDirectoryName(d_save.FileName);
                 if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
-                output_000.Text = "";
+                tb_output.Clear();
                 try {
                     StreamWriter sw_save = new StreamWriter(new FileStream(d_save.FileName, FileMode.Create));
                     sw_save.Write(text_Score.Text);
@@ -552,7 +556,7 @@ namespace MilishitaMacro {
 
                     b_SaveTXT.Text = BT_SAVE;
                 }
-                catch (Exception err) { output_000.Text = err.Message; }
+                catch (Exception err) { tb_output.Text = err.Message; }
             }
         }
 
@@ -656,11 +660,11 @@ namespace MilishitaMacro {
                     }
                     catch (FileNotFoundException) {}
                     catch (Exception err) {
-                        Invoke(new Action(() => { output_000.Text += err.Message + Environment.NewLine; }));
+                        Invoke(new Action(() => { tb_output.AppendText(err.Message + Environment.NewLine); }));
                         ++count_failure;
                         if (count_failure > 4) {
                             Invoke(new Action(() => {
-                                output_000.Text += $"Too many errors. Reworking aborted.{Environment.NewLine}";
+                                tb_output.AppendText($"Too many errors. Reworking aborted.{Environment.NewLine}");
                             }));
                             break;
                         }
@@ -671,13 +675,13 @@ namespace MilishitaMacro {
                 }
                 Invoke(new Action(() => {
                     pgbar_main.Value = 0;
-                    output_000.Text += $"{count_success} out of {n_cfg} files updated.";
+                    tb_output.AppendText($"{count_success} out of {n_cfg} files updated.");
                     EnableInput();
                 }));
                 task_current = null;
             });
 
-            output_000.Text = $"Start reworking...{Environment.NewLine}";
+            tb_output.Text = $"Start reworking...{Environment.NewLine}";
             pgbar_main.Value = 0;
             task_current.Start();
         }

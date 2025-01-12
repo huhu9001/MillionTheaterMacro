@@ -285,14 +285,14 @@ namespace MilishitaMacro {
     partial class MacroCodec {
         static void AddAppendage(JsonMacroBs17.class_ControlSchemes.class_GameControls[] output, JsonAppendage app, int n_noapp) {
             int index = n_noapp;
-            for (int i = 0; i < app.tap.Length; ++i, ++index)
-                output[index] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Tap(app.tap[i]);
-            for (int i = 0; i < app.zoom.Length; ++i, ++index)
-                output[index] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Zoom(app.zoom[i]);
-            for (int i = 0; i < app.repeat.Length; ++i, ++index)
-                output[index] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Repeat(app.repeat[i]);
-            for (int i = 0; i < app.combo.Length; ++i, ++index)
-                output[index] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Script(app.combo[i]);
+            foreach (JsonAppendage.Tap tap in app.tap)
+                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Tap(tap);
+            foreach (JsonAppendage.Zoom zoom in app.zoom)
+                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Zoom(zoom);
+            foreach (JsonAppendage.Repeat repeat in app.repeat)
+                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Repeat(repeat);
+            foreach (JsonAppendage.Combo combo in app.combo)
+                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Script(combo);
         }
 
         static public JsonMacroBs17.class_ControlSchemes.class_GameControls[] ChangeAppendage(JsonMacroBs17.class_ControlSchemes.class_GameControls[] input, JsonAppendage app) {
@@ -320,7 +320,7 @@ namespace MilishitaMacro {
             macro.ControlSchemes[0].GameControls = new JsonMacroBs17.class_ControlSchemes.class_GameControls[n_con];
             
             macro.ControlSchemes[0].Name = $"{song_name}_{CodecSettings.diffs[settings.nDiff].shortName}";
-
+            
             for (int i = 0; i < commands.Length; ++i) {
                 List<string> o = new List<string>(commands[i].Length);
                 int time_last = 0;

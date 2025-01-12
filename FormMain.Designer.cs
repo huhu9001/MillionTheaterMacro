@@ -23,7 +23,7 @@
         /// 使用代码编辑器修改此方法的内容。
         /// </summary>
         private void InitializeComponent() {
-            this.output_000 = new System.Windows.Forms.TextBox();
+            this.tb_output = new System.Windows.Forms.TextBox();
             this.button_Make = new System.Windows.Forms.Button();
             this.tabC_main = new System.Windows.Forms.TabControl();
             this.tab_editor = new System.Windows.Forms.TabPage();
@@ -79,24 +79,24 @@
             ((System.ComponentModel.ISupportInitialize)(this.num_downNum)).BeginInit();
             this.SuspendLayout();
             // 
-            // output_000
+            // tb_output
             // 
-            this.output_000.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.tb_output.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.output_000.Location = new System.Drawing.Point(546, 98);
-            this.output_000.Multiline = true;
-            this.output_000.Name = "output_000";
-            this.output_000.ReadOnly = true;
-            this.output_000.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.output_000.Size = new System.Drawing.Size(232, 258);
-            this.output_000.TabIndex = 0;
+            this.tb_output.Location = new System.Drawing.Point(546, 98);
+            this.tb_output.Multiline = true;
+            this.tb_output.Name = "tb_output";
+            this.tb_output.ReadOnly = true;
+            this.tb_output.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.tb_output.Size = new System.Drawing.Size(232, 258);
+            this.tb_output.TabIndex = 0;
             // 
             // button_Make
             // 
             this.button_Make.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button_Make.Location = new System.Drawing.Point(546, 54);
             this.button_Make.Name = "button_Make";
-            this.button_Make.Size = new System.Drawing.Size(110, 34);
+            this.button_Make.Size = new System.Drawing.Size(110, 32);
             this.button_Make.TabIndex = 8;
             this.button_Make.Text = "Make";
             this.button_Make.UseVisualStyleBackColor = true;
@@ -148,7 +148,7 @@
             this.b_LoadText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.b_LoadText.Location = new System.Drawing.Point(20, 294);
             this.b_LoadText.Name = "b_LoadText";
-            this.b_LoadText.Size = new System.Drawing.Size(100, 33);
+            this.b_LoadText.Size = new System.Drawing.Size(100, 32);
             this.b_LoadText.TabIndex = 13;
             this.b_LoadText.Text = "Load";
             this.b_LoadText.UseVisualStyleBackColor = true;
@@ -159,7 +159,7 @@
             this.b_ass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.b_ass.Location = new System.Drawing.Point(232, 294);
             this.b_ass.Name = "b_ass";
-            this.b_ass.Size = new System.Drawing.Size(110, 33);
+            this.b_ass.Size = new System.Drawing.Size(110, 32);
             this.b_ass.TabIndex = 12;
             this.b_ass.Text = "Open ASS";
             this.b_ass.UseVisualStyleBackColor = true;
@@ -221,7 +221,7 @@
             this.b_locateParser.Name = "b_locateParser";
             this.b_locateParser.Size = new System.Drawing.Size(130, 32);
             this.b_locateParser.TabIndex = 18;
-            this.b_locateParser.Text = "Locate .exe";
+            this.b_locateParser.Text = "Locate EXE";
             this.b_locateParser.UseVisualStyleBackColor = true;
             this.b_locateParser.Click += new System.EventHandler(this.b_locateParser_Click);
             // 
@@ -230,17 +230,17 @@
             this.lb_vidparserDir.AutoSize = true;
             this.lb_vidparserDir.Location = new System.Drawing.Point(6, 30);
             this.lb_vidparserDir.Name = "lb_vidparserDir";
-            this.lb_vidparserDir.Size = new System.Drawing.Size(89, 18);
+            this.lb_vidparserDir.Size = new System.Drawing.Size(80, 18);
             this.lb_vidparserDir.TabIndex = 17;
-            this.lb_vidparserDir.Text = ".exe dir:";
+            this.lb_vidparserDir.Text = "EXE dir:";
             // 
             // tb_vidparserDir
             // 
             this.tb_vidparserDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tb_vidparserDir.Location = new System.Drawing.Point(101, 27);
+            this.tb_vidparserDir.Location = new System.Drawing.Point(92, 27);
             this.tb_vidparserDir.Name = "tb_vidparserDir";
-            this.tb_vidparserDir.Size = new System.Drawing.Size(392, 28);
+            this.tb_vidparserDir.Size = new System.Drawing.Size(401, 28);
             this.tb_vidparserDir.TabIndex = 16;
             this.tb_vidparserDir.TextChanged += new System.EventHandler(this.SettingControlsChanged);
             // 
@@ -333,7 +333,7 @@
             // 
             this.b_rework.Location = new System.Drawing.Point(122, 52);
             this.b_rework.Name = "b_rework";
-            this.b_rework.Size = new System.Drawing.Size(145, 28);
+            this.b_rework.Size = new System.Drawing.Size(145, 32);
             this.b_rework.TabIndex = 6;
             this.b_rework.Text = "Update";
             this.b_rework.UseVisualStyleBackColor = true;
@@ -352,7 +352,7 @@
             // 
             this.b_reworkAp.Location = new System.Drawing.Point(273, 52);
             this.b_reworkAp.Name = "b_reworkAp";
-            this.b_reworkAp.Size = new System.Drawing.Size(185, 28);
+            this.b_reworkAp.Size = new System.Drawing.Size(185, 32);
             this.b_reworkAp.TabIndex = 4;
             this.b_reworkAp.Text = "Update Appendage";
             this.b_reworkAp.UseVisualStyleBackColor = true;
@@ -362,9 +362,9 @@
             // 
             this.b_reworkBrowse.Location = new System.Drawing.Point(16, 52);
             this.b_reworkBrowse.Name = "b_reworkBrowse";
-            this.b_reworkBrowse.Size = new System.Drawing.Size(100, 28);
+            this.b_reworkBrowse.Size = new System.Drawing.Size(100, 32);
             this.b_reworkBrowse.TabIndex = 3;
-            this.b_reworkBrowse.Text = "browse...";
+            this.b_reworkBrowse.Text = "Browse...";
             this.b_reworkBrowse.UseVisualStyleBackColor = true;
             this.b_reworkBrowse.Click += new System.EventHandler(this.b_reworkBrowse_Click);
             // 
@@ -568,7 +568,7 @@
             this.Controls.Add(this.combo_difficulty);
             this.Controls.Add(this.tabC_main);
             this.Controls.Add(this.button_Make);
-            this.Controls.Add(this.output_000);
+            this.Controls.Add(this.tb_output);
             this.Name = "FormMain";
             this.Text = "MilishitaMacro";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.form_main_FormClosing);
@@ -596,7 +596,7 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox output_000;
+        private System.Windows.Forms.TextBox tb_output;
         private System.Windows.Forms.Button button_Make;
         private System.Windows.Forms.TabControl tabC_main;
         private System.Windows.Forms.TabPage tab_editor;

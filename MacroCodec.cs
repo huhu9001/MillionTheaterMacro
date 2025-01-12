@@ -34,7 +34,7 @@ namespace MilishitaMacro {
 
         public readonly Func<double, double> GetX, GetY;
         public double GetXYReverse(double x) {
-            for(int i1 = nChannels; --i1 > 0;) for (int i2 = 0; i2 < 3; ++i2) {
+            for (int i1 = nChannels; --i1 > 0;) for (int i2 = 0; i2 < 3; ++i2) {
                 if (isSolo ? GetY(i1 - (double)i2 / 3) >= x : GetX(i1 - (double)i2 / 3) <= x) {
                     if (i2 == 2) return i1 - 0.5;
                     else return i1;
@@ -259,7 +259,7 @@ namespace MilishitaMacro {
 
     partial class MacroCodec {
         class StateTimeline {
-            class int2 {
+            struct int2 {
                 public readonly int start, end;
                 public int2(int start, int end) { this.start = start; this.end = end; }
             }
@@ -267,7 +267,7 @@ namespace MilishitaMacro {
 
             public void Insert(int _t_s, int _t_e) {
                 LinkedListNode<int2> i0 = timestamp.Last;
-                for (; ; ) {
+                for (;;) {
                     if (i0 == null) {
                         timestamp.AddFirst(new int2(_t_s, _t_e));
                         break;
@@ -281,10 +281,7 @@ namespace MilishitaMacro {
             }
 
             public bool IsIn(int _t) {
-                for (
-                    LinkedListNode<int2> i0 = timestamp.Last;
-                    i0 != null && i0.Value.end >= _t;
-                    i0 = i0.Previous) {
+                for (LinkedListNode<int2> i0 = timestamp.Last; i0 != null && i0.Value.end >= _t; i0 = i0.Previous) {
                     if (i0.Value.start <= _t) return true;
                 }
                 return false;

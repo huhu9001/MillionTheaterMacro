@@ -221,14 +221,14 @@ namespace MilishitaMacro {
     partial class MacroCodec {
         static void AddAppendage(JsonMacroBs13.class_Primitive[] output, JsonAppendage app, int n_noapp) {
             int index = n_noapp;
-            for (int i = 0; i < app.tap.Length; ++i, ++index)
-                output[index] = new JsonMacroBs13.class_Primitive_Tap(app.tap[i]);
-            for (int i = 0; i < app.zoom.Length; ++i, ++index)
-                output[index] = new JsonMacroBs13.class_Primitive_Zoom(app.zoom[i]);
-            for (int i = 0; i < app.repeat.Length; ++i, ++index)
-                output[index] = new JsonMacroBs13.class_Primitive_Repeat(app.repeat[i]);
-            for (int i = 0; i < app.combo.Length; ++i, ++index)
-                output[index] = new JsonMacroBs13.class_Primitive_Combo(app.combo[i]);
+            foreach (JsonAppendage.Tap tap in app.tap)
+                output[index++] = new JsonMacroBs13.class_Primitive_Tap(tap);
+            foreach (JsonAppendage.Zoom zoom in app.zoom)
+                output[index++] = new JsonMacroBs13.class_Primitive_Zoom(zoom);
+            foreach (JsonAppendage.Repeat repeat in app.repeat)
+                output[index++] = new JsonMacroBs13.class_Primitive_Repeat(repeat);
+            foreach (JsonAppendage.Combo combo in app.combo)
+                output[index++] = new JsonMacroBs13.class_Primitive_Combo(combo);
         }
 
         static public JsonMacroBs13.class_Primitive[] ChangeAppendage(JsonMacroBs13.class_Primitive[] input, JsonAppendage app) {
