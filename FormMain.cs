@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using Newtonsoft.Json;
 
 using System.Diagnostics;
-using System.Net;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-
-using Newtonsoft.Json;
-using System.Runtime.Serialization.Formatters;
-using System.Linq;
 
 namespace MilishitaMacro {
     public partial class FormMain : Form {
@@ -27,7 +18,7 @@ namespace MilishitaMacro {
         bool b_changed_songname;
         bool settings_changed;
 
-        Task task_current;
+        Task?task_current;
 
         public FormMain() {
             InitializeComponent();
@@ -44,14 +35,14 @@ namespace MilishitaMacro {
 
             try {
                 StreamReader saved_songs = new StreamReader(new FileStream("songs.txt", FileMode.Open, FileAccess.Read));
-                int songs_size = int.Parse(saved_songs.ReadLine());
+                int songs_size = int.Parse(saved_songs.ReadLine() ?? "");
                 songs = new SongName[songs_size];
                 {
                     int i0;
-                    string s1, s2;
+                    string?s1, s2;
                     for (i0 = 0; i0 < songs_size; ++i0) {
-                        s1 = saved_songs.ReadLine();
-                        s2 = saved_songs.ReadLine();
+                        if ((s1 = saved_songs.ReadLine()) == null) break;
+                        if ((s2 = saved_songs.ReadLine()) == null) break;
                         songs[i0] = new SongName(s1, s2);
                     }
                 }
@@ -100,7 +91,9 @@ namespace MilishitaMacro {
 
             try {
                 StreamReader file_ap = new StreamReader(new FileStream("ap.json", FileMode.Open, FileAccess.Read));
-                appendage = JsonConvert.DeserializeObject<JsonAppendage>(file_ap.ReadToEnd());
+                JsonAppendage?appendage = JsonConvert.DeserializeObject<JsonAppendage>(file_ap.ReadToEnd());
+                if (appendage == null) throw new JsonException();
+                this.appendage = appendage;
                 file_ap.Close();
             }
             catch (FileNotFoundException) {
@@ -202,13 +195,13 @@ namespace MilishitaMacro {
                 InitialDirectory = dir_CFG[index_diff_selected],
             };
             if (d_save.ShowDialog() == DialogResult.OK) {
-                string dir_new = Path.GetDirectoryName(d_save.FileName);
-                if (dir_CFG[index_diff_selected] != dir_new) {
+                string?dir_new = Path.GetDirectoryName(d_save.FileName);
+                if (dir_new != null && dir_CFG[index_diff_selected] != dir_new) {
                     settings_changed = true; dir_CFG[index_diff_selected] = dir_new;
                 }
                 
                 CodecSettings settings = new CodecSettings {
-                    version = ((MacroVersion)combo_ver.SelectedItem).value,
+                    version = ((MacroVersion)combo_ver.SelectedItem!).value,
                     nDiff = index_diff_selected,
                     numCommandPerScript = Convert.ToInt32(num_nCmdScpt.Value),
                     numDown = Convert.ToInt32(num_downNum.Value),
@@ -257,17 +250,28 @@ namespace MilishitaMacro {
 
             task_current = new Task(() => {
                 try {
-                    HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create($"https://million.hyrorre.com/musics/{songs[index_song_selected].urlName}/{CodecSettings.diffs[index_diff_selected].urlName}");
-                    xhr.Method = "GET";
-
                     Invoke(new Action(() => { tb_output.Text = $"Connecting... {Environment.NewLine}"; }));
+
+                    HttpResponseMessage reply = new HttpClient().Send(new(
+                        HttpMethod.Get,
+                        $"https://million.hyrorre.com/musics/{
+                            songs[index_song_selected].urlName
+                        }/{
+                            CodecSettings.diffs[index_diff_selected].urlName
+                        }"));
                     
-                    HttpWebResponse xhrr = xhr.GetResponse() as HttpWebResponse;
+                    Invoke(new Action(() => {
+                        tb_output.AppendText($"Downloading...{Environment.NewLine}");
+                    }));
 
-                    Invoke(new Action(() => { tb_output.AppendText($"Downloading...{Environment.NewLine}"); }));
-
-                    StreamReader reader = new StreamReader(xhrr.GetResponseStream());
-                    string string_sr = ReadWithProgress(reader, xhrr.ContentLength);
+                    StreamReader reader = new StreamReader(reply.Content.ReadAsStream());
+                    long length;
+                    try {
+                        length = long.Parse(reply.Content.Headers.First(h => {
+                            return h.Key.Equals("Content-Length");
+                        }).Value.First());
+                    } catch (Exception) { length = 0; }
+                    string string_sr = ReadWithProgress(reader, length);
                     reader.Close();
 
                     Match m_u = Regex.Match(string_sr, "(?<=<div id=\"score_str\">)[^<]*");
@@ -275,9 +279,12 @@ namespace MilishitaMacro {
 
                     string_sr = Regex.Replace(m_u.Value, "&quot;", "\"");
 
-                    Invoke(new Action(() => { tb_output.AppendText($"ParsingJSON...{Environment.NewLine}"); }));
+                    Invoke(new Action(() => {
+                        tb_output.AppendText($"ParsingJSON...{Environment.NewLine}");
+                    }));
 
-                    JsonScoreMltd js_notes = JsonConvert.DeserializeObject<JsonScoreMltd>(string_sr);
+                    JsonScoreMltd?js_notes = JsonConvert.DeserializeObject<JsonScoreMltd>(string_sr);
+                    if (js_notes == null) throw new JsonException();
                     text_Score.Lines = MacroCodec.FromScoreMltd(js_notes, index_diff_selected).ToArray();
 
                     Invoke(new Action(() => {
@@ -306,22 +313,36 @@ namespace MilishitaMacro {
             
             task_current = new Task(() => {
                 try {
-                    HttpWebRequest xhr = (HttpWebRequest)WebRequest.Create("https://million.hyrorre.com/");
-                    xhr.Method = "GET";
+                    Invoke(new Action(() => {
+                        tb_output.Text = $"Connecting... {Environment.NewLine}";
+                    }));
 
-                    Invoke(new Action(() => { tb_output.Text = $"Connecting... {Environment.NewLine}"; }));
+                    HttpResponseMessage reply = new HttpClient().Send(new(
+                        HttpMethod.Get,
+                        "https://million.hyrorre.com/"));
 
-                    HttpWebResponse xhrr = (HttpWebResponse)xhr.GetResponse();
+                    Invoke(new Action(() => {
+                        tb_output.AppendText($"Downloading...{Environment.NewLine}");
+                    }));
 
-                    Invoke(new Action(() => { tb_output.AppendText($"Downloading...{Environment.NewLine}"); }));
-
-                    StreamReader reader = new StreamReader(xhrr.GetResponseStream());
-                    string string_sr = ReadWithProgress(reader, xhrr.ContentLength);
+                    StreamReader reader = new StreamReader(reply.Content.ReadAsStream());
+                    long length;
+                    try {
+                        length = long.Parse(reply.Content.Headers.First(h => {
+                            return h.Key.Equals("Content-Length");
+                        }).Value.First());
+                    }
+                    catch (Exception) { length = 0; }
+                    string string_sr = ReadWithProgress(reader, length);
                     reader.Close();
 
-                    Invoke(new Action(() => { tb_output.AppendText($"ProcessingText...{Environment.NewLine}"); }));
+                    Invoke(new Action(() => {
+                        tb_output.AppendText($"ProcessingText...{Environment.NewLine}");
+                    }));
 
-                    Match m_u = Regex.Match(string_sr, "(?<=<ul id=\"musiclist\" class=\"list\">)[\\s\\S]*?(?=</ul>)");
+                    Match m_u = Regex.Match(
+                        string_sr,
+                        "(?<=<ul id=\"musiclist\" class=\"list\">)[\\s\\S]*?(?=</ul>)");
                     if (!m_u.Success) throw new Exception("Songs information is not found.");
                     MatchCollection m_uc = Regex.Matches(m_u.Value, "(?<=<li>)[\\s\\S]*?(?=</li>)");
                     songs = new SongName[m_uc.Count];
@@ -329,7 +350,9 @@ namespace MilishitaMacro {
                     for (int i0 = 0; i0 < m_uc.Count; ++i0) {
                         m_u_1 = Regex.Match(m_uc[i0].Value, "(?<=<h3 class=\"title\">).*?(?=</h3>)");
                         if (!m_u_1.Success) throw new Exception($"Song {i0} do not have a name.");
-                        m_u_2 = Regex.Match(m_uc[i0].Value, "(?<=<a href=\"/musics/).*?(?=/\\d+\">\\d+</a>)");
+                        m_u_2 = Regex.Match(
+                            m_uc[i0].Value,
+                            "(?<=<a href=\"/musics/).*?(?=/\\d+\">\\d+</a>)");
                         if (!m_u_1.Success) throw new Exception($"Song \"{m_u_1.Value}\" do not have a URL.");
                         songs[i0] = new SongName(m_u_1.Value, m_u_2.Value);
                     }
@@ -357,8 +380,10 @@ namespace MilishitaMacro {
                 Match m_u;
                 List<string> s_ass = new List<string>();
                 StreamReader sr_ass = new StreamReader(new FileStream(fass, FileMode.Open, FileAccess.Read));
-                for(; !sr_ass.EndOfStream; ) {
-                    m_u = Regex.Match(sr_ass.ReadLine(), "(?:Dialogue|Comment):[^,]*,([^,]*),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)");
+                for (string?line; (line = sr_ass.ReadLine()) != null; ) {
+                    m_u = Regex.Match(
+                        line,
+                        "(?:Dialogue|Comment):[^,]*,([^,]*),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)");
                     if (m_u.Success) {
                         s_ass.Add($"{m_u.Groups[1]},{m_u.Groups[2]}");
                     }
@@ -402,8 +427,11 @@ namespace MilishitaMacro {
             };
             if (d_load.ShowDialog() != DialogResult.OK) return;
 
-            string dir_new = Path.GetDirectoryName(d_load.FileName);
-            if (dir_ASS != dir_new) { settings_changed = true; dir_ASS = dir_new; }
+            string?dir_new = Path.GetDirectoryName(d_load.FileName);
+            if (dir_new != null && dir_ASS != dir_new) {
+                settings_changed = true;
+                dir_ASS = dir_new;
+            }
             
             tb_output.Clear();
             openAss(d_load.FileName);
@@ -493,8 +521,11 @@ namespace MilishitaMacro {
                 InitialDirectory = dir_TXT,
             };
             if (d_load.ShowDialog() == DialogResult.OK) {
-                string dir_new = Path.GetDirectoryName(d_load.FileName);
-                if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
+                string?dir_new = Path.GetDirectoryName(d_load.FileName);
+                if (dir_new != null && dir_TXT != dir_new) {
+                    settings_changed = true;
+                    dir_TXT = dir_new;
+                }
                 tb_output.Clear();
                 try {
                     Match m_u;
@@ -546,8 +577,11 @@ namespace MilishitaMacro {
                 InitialDirectory = dir_TXT,
             };
             if (d_save.ShowDialog() == DialogResult.OK) {
-                string dir_new = Path.GetDirectoryName(d_save.FileName);
-                if (dir_TXT != dir_new) { settings_changed = true; dir_TXT = dir_new; }
+                string?dir_new = Path.GetDirectoryName(d_save.FileName);
+                if (dir_new != null && dir_TXT != dir_new) {
+                    settings_changed = true;
+                    dir_TXT = dir_new;
+                }
                 tb_output.Clear();
                 try {
                     StreamWriter sw_save = new StreamWriter(new FileStream(d_save.FileName, FileMode.Create));
@@ -567,7 +601,7 @@ namespace MilishitaMacro {
             bool isOlder = cb_old.Checked;
             bool isApOnly = sender == b_reworkAp;
             CodecSettings settings = new CodecSettings {
-                version = ((MacroVersion)combo_ver.SelectedItem).value,
+                version = ((MacroVersion)combo_ver.SelectedItem!).value,
                 nDiff = 5,
                 numCommandPerScript = Convert.ToInt32(num_nCmdScpt.Value),
                 numDown = Convert.ToInt32(num_downNum.Value),
@@ -592,22 +626,24 @@ namespace MilishitaMacro {
                             switch (settings.version) {
                                 default: throw new Exception("Invalid macro version.");
                                 case (int)MacroVersion.Value.BluestacksParser13: {
-                                        JsonMacroBs13 macro = JsonConvert.DeserializeObject<JsonMacroBs13>(si, new JsonSerializerSettings {
+                                        JsonMacroBs13?macro = JsonConvert.DeserializeObject<JsonMacroBs13>(si, new JsonSerializerSettings {
                                             TypeNameHandling = TypeNameHandling.All,
                                             SerializationBinder = new JsonMacroBs13.PrimitiveTypesBinder(),
                                         });
-                                        JsonMacroBs13.class_Primitive[] ctrls = macro.Primitives;
+                                        if (macro == null) throw new JsonException();
+                                        JsonMacroBs13.class_Primitive[]?ctrls = macro.Primitives;
                                         if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
                                         macro.Primitives = MacroCodec.ChangeAppendage(ctrls, appendage);
                                         so = JsonConvert.SerializeObject(macro);
                                     }
                                     break;
                                 case (int)MacroVersion.Value.BluestacksParser17: {
-                                        JsonMacroBs17 macro = JsonConvert.DeserializeObject<JsonMacroBs17>(si, new JsonSerializerSettings {
+                                        JsonMacroBs17?macro = JsonConvert.DeserializeObject<JsonMacroBs17>(si, new JsonSerializerSettings {
                                             TypeNameHandling = TypeNameHandling.All,
                                             SerializationBinder = new JsonMacroBs17.class_ControlSchemes.GameControlsTypesBinder(),
                                         });
-                                        JsonMacroBs17.class_ControlSchemes.class_GameControls[] ctrls = macro.ControlSchemes[0].GameControls;
+                                        if (macro == null) throw new JsonException();
+                                        JsonMacroBs17.class_ControlSchemes.class_GameControls[]?ctrls = macro.ControlSchemes[0].GameControls;
                                         if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
                                         macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(ctrls, appendage);
                                         so = JsonConvert.SerializeObject(macro);
@@ -631,9 +667,10 @@ namespace MilishitaMacro {
                                 case "mm": settings.nDiff = 5; break;
                             }
 
-                            StreamReader fr = new StreamReader(new FileStream($"{dir_TXT}\\{filename}.txt", FileMode.Open, FileAccess.Read));
+                            StreamReader fr =
+                                new StreamReader(new FileStream($"{dir_TXT}\\{filename}.txt", FileMode.Open, FileAccess.Read));
                             IEnumerable<string> RL(TextReader tr) {
-                                while (tr.Peek() != -1) yield return tr.ReadLine();
+                                for (string?line; (line = tr.ReadLine()) != null;) yield return line;
                             }
                             switch (settings.version) {
                                 default: fr.Close(); throw new Exception("Invalid macro version.");

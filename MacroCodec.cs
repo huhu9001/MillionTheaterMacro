@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace MilishitaMacro {
@@ -184,23 +181,23 @@ namespace MilishitaMacro {
     class JsonScoreMltd : object {
         public class class_Conductor {
             public int Beat;
-            public string ExtraInfo;
+            public string?ExtraInfo;
             public int Measure;
             public int Ticks;
             public int SignatureDenominator;
             public int SignatureNumerator;
             public int Tempo;
         }
-        public class_Conductor[] Conductors;
+        public class_Conductor[]?Conductors;
         public int MusicOffset;
         public class class_Note {
             public int Beat;
-            public string ExtraInfo;
+            public string?ExtraInfo;
             public int Measure;
             public int Ticks;
             public double EndX;
             public int FlickDirection;
-            public class_Note[] FollowingNotes;
+            public class_Note[]?FollowingNotes;
             public int GroupID;
             public double LeadTime;
             public int Size;
@@ -209,7 +206,7 @@ namespace MilishitaMacro {
             public int TrackIndex;
             public int Type;
         }
-        public class_Note[] Notes;
+        public class_Note[]?Notes;
         public int ScoreIndex;
         public int TrackCount;
     }
@@ -266,7 +263,7 @@ namespace MilishitaMacro {
             LinkedList<int2> timestamp = new LinkedList<int2>();
 
             public void Insert(int _t_s, int _t_e) {
-                LinkedListNode<int2> i0 = timestamp.Last;
+                LinkedListNode<int2>?i0 = timestamp.Last;
                 for (;;) {
                     if (i0 == null) {
                         timestamp.AddFirst(new int2(_t_s, _t_e));
@@ -281,7 +278,7 @@ namespace MilishitaMacro {
             }
 
             public bool IsIn(int _t) {
-                for (LinkedListNode<int2> i0 = timestamp.Last; i0 != null && i0.Value.end >= _t; i0 = i0.Previous) {
+                for (LinkedListNode<int2>?i0 = timestamp.Last; i0 != null && i0.Value.end >= _t; i0 = i0.Previous) {
                     if (i0.Value.start <= _t) return true;
                 }
                 return false;
@@ -312,11 +309,11 @@ namespace MilishitaMacro {
             throw new Exception($"Invalid timestamp: \"{_t}\".");
         }
 
-        static int FromTicksToMilisecond(int _t, JsonScoreMltd.class_Conductor[] _tempo) {
+        static int FromTicksToMilisecond(int _t, JsonScoreMltd.class_Conductor[]_tempo) {
             const double tempo_const = 96;
             int time = 0;
             IEnumerator<JsonScoreMltd.class_Conductor> tems = _tempo.OrderBy(u => u.Ticks).GetEnumerator();
-            if (!tems.MoveNext()) throw new Exception("BPM information is missing.");
+            if (!tems.MoveNext()) throw new JsonException("BPM information is missing.");
             JsonScoreMltd.class_Conductor tem = tems.Current, tem_next;
             while (tems.MoveNext() && (tem_next = tems.Current).Ticks < _t) {
                 time += (int)((ulong)(tem_next.Ticks - tem.Ticks) * 1000 / (tem.Tempo * tempo_const));
@@ -327,8 +324,12 @@ namespace MilishitaMacro {
         }
 
         static public IEnumerable<string> FromScoreMltd(JsonScoreMltd score, int n_diff) {
+            JsonScoreMltd.class_Conductor[]?conductors = score.Conductors;
+            if (conductors == null) throw new JsonException("BPM information is missing.");
+            JsonScoreMltd.class_Note[]?notes = score.Notes;
+            if (notes == null) throw new JsonException("Notes information is missing.");
             string FromSingleNote(JsonScoreMltd.class_Note note) {
-                string time = FromTicksToMilisecond(note.Ticks, score.Conductors).ToString();
+                string time = FromTicksToMilisecond(note.Ticks, conductors).ToString();
                 string x_nobrac = (note.EndX + 1).ToString();
                 string x = x_nobrac.Length == 1 ? x_nobrac : $"({x_nobrac})" ;
                 return time + ',' + x;
@@ -340,7 +341,7 @@ namespace MilishitaMacro {
             };
             Func<double, bool> IsLeft = CodecSettings.diffs[n_diff].IsLeft;
 
-            foreach (var note in score.Notes) {
+            foreach (var note in notes) {
                 int dexterity;
                 string dexterity_suffix;
                 string dex_first;
@@ -568,7 +569,8 @@ namespace MilishitaMacro {
             //desync management 2: linear compensation
             foreach (List<MacroCommand> command1 in commandN) {
                 int n_delay = 0;
-                MacroCommand mc = command1.FirstOrDefault();
+                MacroCommand?mc = command1.FirstOrDefault();
+                if (mc == null) continue;
                 foreach (MacroCommand mc_next in command1.Skip(1)) {
                     switch (mc.type) {
                         case (int)MacroCommand.Type.DOWN:

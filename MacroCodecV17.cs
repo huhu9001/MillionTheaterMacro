@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace MilishitaMacro {
     class JsonMacroBs17 {
         public class class_MetaData {
@@ -15,7 +11,7 @@ namespace MilishitaMacro {
         public class_MetaData MetaData = new class_MetaData();
 
         public class class_ControlSchemes {
-            public string Name;
+            public string?Name;
             public bool BuiltIn = false;
             public bool Selected = true;
             public bool IsBookMarked = false;
@@ -24,9 +20,9 @@ namespace MilishitaMacro {
 
             public class class_GameControls {
                 [JsonProperty("$type", Order = 1)]
-                public string type;
+                public string?type;
                 [JsonProperty(Order = 2)]
-                public string Type;
+                public string?Type;
                 [JsonProperty(Order = 3)]
                 public int Tweaks = 0;
                 [JsonProperty(Order = 4)]
@@ -50,9 +46,9 @@ namespace MilishitaMacro {
 
                 public class class_Guidance { }
                 [JsonProperty(Order = 201)]
-                public string GuidanceCategory;
+                public string?GuidanceCategory;
                 [JsonProperty(Order = 202)]
-                public class_Guidance Guidance;
+                public class_Guidance?Guidance;
 
             }
             public class class_GameControls_Tap : class_GameControls {
@@ -61,9 +57,9 @@ namespace MilishitaMacro {
                 [JsonProperty(Order = 101)]
                 public double Y;
                 [JsonProperty(Order = 102)]
-                public string Key;
+                public string?Key;
                 [JsonProperty(Order = 103)]
-                public string Key_alt1;
+                public string?Key_alt1;
 
                 [JsonConstructor]
                 public class_GameControls_Tap() { type = "Tap, Bluestacks"; }
@@ -96,11 +92,11 @@ namespace MilishitaMacro {
                 [JsonProperty(Order = 101)]
                 public double Y;
                 [JsonProperty(Order = 102)]
-                public string Key;
+                public string?Key;
                 [JsonProperty(Order = 103)]
-                public string Key_alt1;
+                public string?Key_alt1;
                 [JsonProperty(Order = 104)]
-                public string[] Commands;
+                public string[]?Commands;
 
                 [JsonConstructor]
                 public class_GameControls_Script() { type = "Script, Bluestacks"; }
@@ -164,19 +160,19 @@ namespace MilishitaMacro {
                 [JsonProperty(Order = 108)]
                 public bool Override;
                 [JsonProperty(Order = 109)]
-                public string KeyIn;
+                public string?KeyIn;
                 [JsonProperty(Order = 110)]
-                public string KeyIn_alt1;
+                public string?KeyIn_alt1;
                 [JsonProperty(Order = 111)]
-                public string KeyOut;
+                public string?KeyOut;
                 [JsonProperty(Order = 112)]
-                public string KeyOut_alt1;
+                public string?KeyOut_alt1;
                 [JsonProperty(Order = 113)]
-                public string KeyModifier;
+                public string?KeyModifier;
                 [JsonProperty(Order = 114)]
-                public string KeyModifier_alt1;
+                public string?KeyModifier_alt1;
                 [JsonProperty(Order = 115)]
-                public string KeyWheel;
+                public string?KeyWheel;
 
                 [JsonConstructor]
                 public class_GameControls_Zoom() { type = "Zoom, Bluestacks"; }
@@ -227,9 +223,9 @@ namespace MilishitaMacro {
                 [JsonProperty(Order = 104)]
                 public bool RepeatUntilKeyUp;
                 [JsonProperty(Order = 105)]
-                public string Key;
+                public string?Key;
                 [JsonProperty(Order = 106)]
-                public string Key_alt1;
+                public string?Key_alt1;
 
                 [JsonConstructor]
                 public class_GameControls_Repeat() { type = "TapRepeat, Bluestacks"; }
@@ -260,19 +256,19 @@ namespace MilishitaMacro {
                 }
             }
             public class GameControlsTypesBinder : Newtonsoft.Json.Serialization.ISerializationBinder {
-                public Type BindToType(string assemblyName, string typeName) {
+                public Type BindToType(string?assemblyName, string typeName) {
                     if (typeName == "Tap") return typeof(class_GameControls_Tap);
                     if (typeName == "Script") return typeof(class_GameControls_Script);
                     if (typeName == "Zoom") return typeof(class_GameControls_Zoom);
                     if (typeName == "TapRepeat") return typeof(class_GameControls_Repeat);
                     return typeof(class_GameControls);
                 }
-                public void BindToName(Type serializedType, out string assemblyName, out string typeName) {
+                public void BindToName(Type serializedType, out string?assemblyName, out string?typeName) {
                     assemblyName = null;
                     typeName = null;
                 }
             }
-            public class_GameControls[] GameControls = null;
+            public class_GameControls[]?GameControls = null;
 
             public int[] Images = new int[0];
         }
@@ -317,7 +313,9 @@ namespace MilishitaMacro {
             MacroCommand[][] commands = ParseLines(scores, ref settings);
             
             int n_con = commands.Length + appendage.tap.Length + appendage.zoom.Length + appendage.repeat.Length + appendage.combo.Length;
-            macro.ControlSchemes[0].GameControls = new JsonMacroBs17.class_ControlSchemes.class_GameControls[n_con];
+            JsonMacroBs17.class_ControlSchemes.class_GameControls[]controls =
+                new JsonMacroBs17.class_ControlSchemes.class_GameControls[n_con];
+            macro.ControlSchemes[0].GameControls = controls;
             
             macro.ControlSchemes[0].Name = $"{song_name}_{CodecSettings.diffs[settings.nDiff].shortName}";
             
@@ -337,7 +335,7 @@ namespace MilishitaMacro {
                     o.Add(typename + ' ' + c.x + ' ' + c.y);
                     time_last = c.time;
                 }
-                macro.ControlSchemes[0].GameControls[i] =
+                controls[i] =
                     new JsonMacroBs17.class_ControlSchemes.class_GameControls_Script {
                         type = "Script, Bluestacks",
                         Type = "Script",
@@ -361,7 +359,7 @@ namespace MilishitaMacro {
                     };
             }
 
-            AddAppendage(macro.ControlSchemes[0].GameControls, appendage, commands.Length);
+            AddAppendage(controls, appendage, commands.Length);
 
             return macro;
         }

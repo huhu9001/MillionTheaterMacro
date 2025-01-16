@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
 
-using System;
-using System.Collections.Generic;
-
 namespace MilishitaMacro {
     class JsonMacroBs13 {
         /// Structure
@@ -14,19 +11,19 @@ namespace MilishitaMacro {
         
         public class class_Primitive {
             [JsonProperty("$type", Order = 1)]
-            public string type;
+            public string?type;
 
             [JsonProperty(Order = 100)]
-            public string Type;
+            public string?Type;
             public class class_Guidance { }
             [JsonProperty(Order = 101)]
-            public class_Guidance Guidance;
+            public class_Guidance?Guidance;
             [JsonProperty(Order = 102)]
-            public string GuidanceCategory;
+            public string?GuidanceCategory;
             [JsonProperty(Order = 103)]
-            public string[] Tags;
+            public string[]?Tags;
             [JsonProperty(Order = 104)]
-            public string EnableCondition;
+            public string?EnableCondition;
             [JsonProperty(Order = 105)]
             public bool IsVisibleInOverlay;
         }
@@ -36,9 +33,9 @@ namespace MilishitaMacro {
             [JsonProperty(Order = 3)]
             public double Y;
             [JsonProperty(Order = 4)]
-            public string Key;
+            public string?Key;
             [JsonProperty(Order = 5)]
-            public string Key_alt1;
+            public string?Key_alt1;
             [JsonProperty(Order = 6)]
             public bool ShowOnOverlay;
 
@@ -63,18 +60,18 @@ namespace MilishitaMacro {
         }
         public class class_Primitive_Combo : class_Primitive {
             [JsonProperty(Order = 4)]
-            public string Key;
+            public string?Key;
             [JsonProperty(Order = 5)]
-            public string Description;
+            public string?Description;
             public class class_Event {
                 public int Timestamp;
                 public double X;
                 public double Y;
                 public int Delta;
-                public string EventType;
+                public string?EventType;
             }
             [JsonProperty(Order = 6)]
-            public class_Event[] Events;
+            public class_Event[]?Events;
 
             [JsonConstructor]
             public class_Primitive_Combo() { type = "Combo, Bluestacks"; }
@@ -120,13 +117,13 @@ namespace MilishitaMacro {
             [JsonProperty(Order = 5)]
             public double Y2;
             [JsonProperty(Order = 6)]
-            public string KeyIn;
+            public string?KeyIn;
             [JsonProperty(Order = 7)]
-            public string KeyIn_alt1;
+            public string?KeyIn_alt1;
             [JsonProperty(Order = 8)]
-            public string KeyOut;
+            public string?KeyOut;
             [JsonProperty(Order = 9)]
-            public string KeyOut_alt1;
+            public string?KeyOut_alt1;
             [JsonProperty(Order = 10)]
             public double Speed;
             [JsonProperty(Order = 11)]
@@ -165,7 +162,7 @@ namespace MilishitaMacro {
             [JsonProperty(Order = 3)]
             public double Y;
             [JsonProperty(Order = 4)]
-            public string Key;
+            public string?Key;
             [JsonProperty(Order = 5)]
             public int Count;
             [JsonProperty(Order = 6)]
@@ -197,19 +194,19 @@ namespace MilishitaMacro {
             }
         }
         public class PrimitiveTypesBinder : Newtonsoft.Json.Serialization.ISerializationBinder {
-            public Type BindToType(string assemblyName, string typeName) {
+            public Type BindToType(string?assemblyName, string typeName) {
                 if (typeName == "Tap") return typeof(class_Primitive_Tap);
                 if (typeName == "Combo") return typeof(class_Primitive_Combo);
                 if (typeName == "Zoom") return typeof(class_Primitive_Zoom);
                 if (typeName == "TapRepeat") return typeof(class_Primitive_Repeat);
                 return typeof(class_Primitive);
             }
-            public void BindToName(Type serializedType, out string assemblyName, out string typeName) {
+            public void BindToName(Type serializedType, out string?assemblyName, out string?typeName) {
                 assemblyName = null;
                 typeName = null;
             }
         }
-        public class_Primitive[] Primitives = null;
+        public class_Primitive[]?Primitives = null;
         public class class_Strings {
             public class class_UserDefined { }
             [JsonProperty("User-Defined")]
