@@ -258,19 +258,14 @@ namespace MilishitaMacro {
                             songs[index_song_selected].urlName
                         }/{
                             CodecSettings.diffs[index_diff_selected].urlName
-                        }"));
+                        }"), HttpCompletionOption.ResponseHeadersRead);
                     
                     Invoke(new Action(() => {
                         tb_output.AppendText($"Downloading...{Environment.NewLine}");
                     }));
 
+                    long length = reply.Content.Headers.ContentLength ?? 0;
                     StreamReader reader = new StreamReader(reply.Content.ReadAsStream());
-                    long length;
-                    try {
-                        length = long.Parse(reply.Content.Headers.First(h => {
-                            return h.Key.Equals("Content-Length");
-                        }).Value.First());
-                    } catch (Exception) { length = 0; }
                     string string_sr = ReadWithProgress(reader, length);
                     reader.Close();
 
@@ -317,22 +312,16 @@ namespace MilishitaMacro {
                         tb_output.Text = $"Connecting... {Environment.NewLine}";
                     }));
 
-                    HttpResponseMessage reply = new HttpClient().Send(new(
-                        HttpMethod.Get,
-                        "https://million.hyrorre.com/"));
+                    HttpResponseMessage reply = new HttpClient().Send(
+                        new(HttpMethod.Get, "https://million.hyrorre.com/"),
+                        HttpCompletionOption.ResponseHeadersRead);
 
                     Invoke(new Action(() => {
                         tb_output.AppendText($"Downloading...{Environment.NewLine}");
                     }));
 
+                    long length = reply.Content.Headers.ContentLength ?? 0;
                     StreamReader reader = new StreamReader(reply.Content.ReadAsStream());
-                    long length;
-                    try {
-                        length = long.Parse(reply.Content.Headers.First(h => {
-                            return h.Key.Equals("Content-Length");
-                        }).Value.First());
-                    }
-                    catch (Exception) { length = 0; }
                     string string_sr = ReadWithProgress(reader, length);
                     reader.Close();
 
