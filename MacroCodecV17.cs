@@ -1,7 +1,8 @@
 ﻿using Newtonsoft.Json;
 
 namespace MilishitaMacro {
-    class JsonMacroBs17 {
+    using Container = GameControlItemContainer<JsonMacroBs17.class_ControlSchemes.class_GameControls, JsonMacroBs17.class_ControlSchemes.class_GameControls_Script>;
+    class JsonMacroBs17:Container {
         public class class_MetaData {
             public string ParserVersion = "17";
             public string UpdateVersion = "";
@@ -63,28 +64,6 @@ namespace MilishitaMacro {
 
                 [JsonConstructor]
                 public class_GameControls_Tap() { type = "Tap, Bluestacks"; }
-                public class_GameControls_Tap(JsonAppendage.Tap j) {
-                    type = "Tap, Bluestacks";
-                    Type = "Tap";
-                    Tweaks = 0;
-                    Exclusive = false;
-                    ExclusiveDelay = 200;
-                    XExpr = "";
-                    YExpr = "";
-                    XOverlayOffset = "";
-                    YOverlayOffset = "";
-                    StartCondition = "";
-                    EnableCondition = "";
-                    ShowOnOverlay = true;
-
-                    X = j.X;
-                    Y = j.Y;
-                    Key = j.Key;
-                    Key_alt1 = "";
-
-                    GuidanceCategory = "";
-                    Guidance = new class_Guidance();
-                }
             }
             public class class_GameControls_Script : class_GameControls {
                 [JsonProperty(Order = 100)]
@@ -100,45 +79,6 @@ namespace MilishitaMacro {
 
                 [JsonConstructor]
                 public class_GameControls_Script() { type = "Script, Bluestacks"; }
-                public class_GameControls_Script(JsonAppendage.Combo j) {
-                    type = "Script, Bluestacks";
-                    Type = "Script";
-                    Tweaks = 0;
-                    Exclusive = false;
-                    ExclusiveDelay = 200;
-                    XExpr = "";
-                    YExpr = "";
-                    XOverlayOffset = "";
-                    YOverlayOffset = "";
-                    StartCondition = "";
-                    EnableCondition = "";
-                    ShowOnOverlay = true;
-
-                    X = 10;
-                    Y = 10;
-                    Key = j.Key;
-                    Key_alt1 = "";
-
-                    List<string> o = new List<string>(j.Events.Length * 2);
-                    int time_prev = 0;
-                    foreach (MacroCommand c in j.Events.OrderBy(c => c.time)) {
-                        string typename;
-                        switch (c.type) {
-                            default: continue;
-                            case (int)MacroCommand.Type.DOWN: typename = "mouseDown"; break;
-                            case (int)MacroCommand.Type.UP: typename = "mouseUp"; break;
-                            case (int)MacroCommand.Type.MOVE: typename = "mouseMove"; break;
-                        }
-                        int time_det = c.time - time_prev;
-                        if (time_det > 0) o.Add($"wait {time_det}");
-                        o.Add(typename + ' ' + c.x + ' ' + c.y);
-                        time_prev = c.time;
-                    }
-                    Commands = o.ToArray();
-
-                    GuidanceCategory = "";
-                    Guidance = new class_Guidance();
-                }
             }
             public class class_GameControls_Zoom : class_GameControls {
                 [JsonProperty(Order = 100)]
@@ -176,40 +116,6 @@ namespace MilishitaMacro {
 
                 [JsonConstructor]
                 public class_GameControls_Zoom() { type = "Zoom, Bluestacks"; }
-                public class_GameControls_Zoom(JsonAppendage.Zoom j) {
-                    type = "Zoom, Bluestacks";
-                    Type = "Zoom";
-                    Tweaks = 0;
-                    Exclusive = false;
-                    ExclusiveDelay = 200;
-                    XExpr = "";
-                    YExpr = "";
-                    XOverlayOffset = "";
-                    YOverlayOffset = "";
-                    StartCondition = "";
-                    EnableCondition = "";
-                    ShowOnOverlay = true;
-
-                    X1 = j.X1;
-                    Y1 = j.Y1;
-                    X2 = j.X2;
-                    Y2 = j.Y2;
-                    Speed = 1;
-                    MinDistance = 5;
-                    Mode = 0;
-                    ResetDelay = 75;
-                    Override = true;
-                    KeyIn = j.KeyIn;
-                    KeyIn_alt1 = "";
-                    KeyOut = j.KeyOut;
-                    KeyOut_alt1 = "";
-                    KeyModifier = "";
-                    KeyModifier_alt1 = "";
-                    KeyWheel = "";
-
-                    GuidanceCategory = "";
-                    Guidance = new class_Guidance();
-                }
             }
             public class class_GameControls_Repeat : class_GameControls {
                 [JsonProperty(Order = 100)]
@@ -229,31 +135,6 @@ namespace MilishitaMacro {
 
                 [JsonConstructor]
                 public class_GameControls_Repeat() { type = "TapRepeat, Bluestacks"; }
-                public class_GameControls_Repeat(JsonAppendage.Repeat j) {
-                    type = "TapRepeat, Bluestacks";
-                    Type = "TapRepeat";
-                    Tweaks = 0;
-                    Exclusive = false;
-                    ExclusiveDelay = 200;
-                    XExpr = "";
-                    YExpr = "";
-                    XOverlayOffset = "";
-                    YOverlayOffset = "";
-                    StartCondition = "";
-                    EnableCondition = "";
-                    ShowOnOverlay = true;
-
-                    X = j.X;
-                    Y = j.Y;
-                    Count = j.Count;
-                    Delay = j.Delay;
-                    RepeatUntilKeyUp = true;
-                    Key = j.Key;
-                    Key_alt1 = "";
-
-                    GuidanceCategory = "";
-                    Guidance = new class_Guidance();
-                }
             }
             public class GameControlsTypesBinder : Newtonsoft.Json.Serialization.ISerializationBinder {
                 public Type BindToType(string?assemblyName, string typeName) {
@@ -276,49 +157,151 @@ namespace MilishitaMacro {
         
         public class class_Strings {}
         public class_Strings Strings = new class_Strings();
-    }
 
-    partial class MacroCodec {
-        static void AddAppendage(JsonMacroBs17.class_ControlSchemes.class_GameControls[] output, JsonAppendage app, int n_noapp) {
-            int index = n_noapp;
-            foreach (JsonAppendage.Tap tap in app.tap)
-                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Tap(tap);
-            foreach (JsonAppendage.Zoom zoom in app.zoom)
-                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Zoom(zoom);
-            foreach (JsonAppendage.Repeat repeat in app.repeat)
-                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Repeat(repeat);
-            foreach (JsonAppendage.Combo combo in app.combo)
-                output[index++] = new JsonMacroBs17.class_ControlSchemes.class_GameControls_Script(combo);
+        class_ControlSchemes.class_GameControls[] Container.getData() =>
+            ControlSchemes[0].GameControls!;
+        class_ControlSchemes.class_GameControls Container.makeTap(JsonAppendage.Tap tap) =>
+            new class_ControlSchemes.class_GameControls_Tap {
+                type = "Tap, Bluestacks",
+                Type = "Tap",
+                Tweaks = 0,
+                Exclusive = false,
+                ExclusiveDelay = 200,
+                XExpr = "",
+                YExpr = "",
+                XOverlayOffset = "",
+                YOverlayOffset = "",
+                StartCondition = "",
+                EnableCondition = "",
+                ShowOnOverlay = true,
+
+                X = tap.X,
+                Y = tap.Y,
+                Key = tap.Key,
+                Key_alt1 = "",
+
+                GuidanceCategory = "",
+                Guidance = new class_ControlSchemes.class_GameControls.class_Guidance(),
+            };
+        class_ControlSchemes.class_GameControls Container.makeZoom(JsonAppendage.Zoom zoom) =>
+            new class_ControlSchemes.class_GameControls_Zoom {
+                type = "Zoom, Bluestacks",
+                Type = "Zoom",
+                Tweaks = 0,
+                Exclusive = false,
+                ExclusiveDelay = 200,
+                XExpr = "",
+                YExpr = "",
+                XOverlayOffset = "",
+                YOverlayOffset = "",
+                StartCondition = "",
+                EnableCondition = "",
+                ShowOnOverlay = true,
+
+                X1 = zoom.X1,
+                Y1 = zoom.Y1,
+                X2 = zoom.X2,
+                Y2 = zoom.Y2,
+                Speed = 1,
+                MinDistance = 5,
+                Mode = 0,
+                ResetDelay = 75,
+                Override = true,
+                KeyIn = zoom.KeyIn,
+                KeyIn_alt1 = "",
+                KeyOut = zoom.KeyOut,
+                KeyOut_alt1 = "",
+                KeyModifier = "",
+                KeyModifier_alt1 = "",
+                KeyWheel = "",
+
+                GuidanceCategory = "",
+                Guidance = new class_ControlSchemes.class_GameControls.class_Guidance(),
+            };
+        class_ControlSchemes.class_GameControls Container.makeRepeat(JsonAppendage.Repeat repeat) {
+            return new class_ControlSchemes.class_GameControls_Repeat {
+                type = "TapRepeat, Bluestacks",
+                Type = "TapRepeat",
+                Tweaks = 0,
+                Exclusive = false,
+                ExclusiveDelay = 200,
+                XExpr = "",
+                YExpr = "",
+                XOverlayOffset = "",
+                YOverlayOffset = "",
+                StartCondition = "",
+                EnableCondition = "",
+                ShowOnOverlay = true,
+
+                X = repeat.X,
+                Y = repeat.Y,
+                Count = repeat.Count,
+                Delay = repeat.Delay,
+                RepeatUntilKeyUp = true,
+                Key = repeat.Key,
+                Key_alt1 = "",
+
+                GuidanceCategory = "",
+                Guidance = new class_ControlSchemes.class_GameControls.class_Guidance(),
+            };
+        }
+        class_ControlSchemes.class_GameControls Container.makeCombo(JsonAppendage.Combo combo) {
+            List<string> o = new List<string>(combo.Events.Length * 2);
+            int time_prev = 0;
+            foreach (MacroCommand c in combo.Events.OrderBy(c => c.time)) {
+                string typename;
+                switch (c.type) {
+                    default: continue;
+                    case (int)MacroCommand.Type.DOWN: typename = "mouseDown"; break;
+                    case (int)MacroCommand.Type.UP: typename = "mouseUp"; break;
+                    case (int)MacroCommand.Type.MOVE: typename = "mouseMove"; break;
+                }
+                int time_det = c.time - time_prev;
+                if (time_det > 0) o.Add($"wait {time_det}");
+                o.Add(typename + ' ' + c.x + ' ' + c.y);
+                time_prev = c.time;
+            }
+
+            return new class_ControlSchemes.class_GameControls_Script {
+                type = "Script, Bluestacks",
+                Type = "Script",
+                Tweaks = 0,
+                Exclusive = false,
+                ExclusiveDelay = 200,
+                XExpr = "",
+                YExpr = "",
+                XOverlayOffset = "",
+                YOverlayOffset = "",
+                StartCondition = "",
+                EnableCondition = "",
+                ShowOnOverlay = true,
+
+                X = 10,
+                Y = 10,
+                Key = combo.Key,
+                Key_alt1 = "",
+
+                Commands = o.ToArray(),
+
+                GuidanceCategory = "",
+                Guidance = new class_ControlSchemes.class_GameControls.class_Guidance(),
+            };
         }
 
-        static public JsonMacroBs17.class_ControlSchemes.class_GameControls[] ChangeAppendage(JsonMacroBs17.class_ControlSchemes.class_GameControls[] input, JsonAppendage app) {
-            int n_noapp = Array.FindIndex(input, p => !(p is JsonMacroBs17.class_ControlSchemes.class_GameControls_Script));
-            if (n_noapp == -1) n_noapp = input.Length;
-
-            int output_size = n_noapp + app.tap.Length + app.zoom.Length + app.repeat.Length + app.combo.Length;
-            JsonMacroBs17.class_ControlSchemes.class_GameControls[] output = new JsonMacroBs17.class_ControlSchemes.class_GameControls[output_size];
-
-            Array.Copy(input, output, n_noapp);
-            AddAppendage(output, app, n_noapp);
-
-            return output;
-        }
-
-        static public JsonMacroBs17 ConvertMacroV17(
+        public JsonMacroBs17(
             IEnumerable<string> scores,
             JsonAppendage appendage,
             string song_name,
             ref CodecSettings settings) {
-            JsonMacroBs17 macro = new JsonMacroBs17();
-            MacroCommand[][] commands = ParseLines(scores, ref settings);
-            
+            MacroCommand[][] commands = MacroCodec.ParseLines(scores, ref settings);
+
             int n_con = commands.Length + appendage.tap.Length + appendage.zoom.Length + appendage.repeat.Length + appendage.combo.Length;
-            JsonMacroBs17.class_ControlSchemes.class_GameControls[]controls =
+            JsonMacroBs17.class_ControlSchemes.class_GameControls[] controls =
                 new JsonMacroBs17.class_ControlSchemes.class_GameControls[n_con];
-            macro.ControlSchemes[0].GameControls = controls;
-            
-            macro.ControlSchemes[0].Name = $"{song_name}_{CodecSettings.diffs[settings.nDiff].shortName}";
-            
+            ControlSchemes[0].GameControls = controls;
+
+            ControlSchemes[0].Name = $"{song_name}_{CodecSettings.diffs[settings.nDiff].shortName}";
+
             for (int i = 0; i < commands.Length; ++i) {
                 List<string> o = new List<string>(commands[i].Length);
                 int time_last = 0;
@@ -359,9 +342,7 @@ namespace MilishitaMacro {
                     };
             }
 
-            AddAppendage(controls, appendage, commands.Length);
-
-            return macro;
+            MacroCodec.AddAppendage(this, appendage, commands.Length);
         }
     }
 }

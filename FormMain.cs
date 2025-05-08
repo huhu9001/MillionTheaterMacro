@@ -215,14 +215,14 @@ namespace MilishitaMacro {
                     switch (settings.version) {
                         default: tb_output.AppendText("Macro version error."); return;
                         case (int)MacroVersion.Value.BluestacksParser13:
-                            output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV13(
+                            output = JsonConvert.SerializeObject(new JsonMacroBs13(
                                 text_Score.Lines,
                                 appendage,
                                 textb_SongName.Text,
                                 ref settings));
                             break;
                         case (int)MacroVersion.Value.BluestacksParser17:
-                            output = JsonConvert.SerializeObject(MacroCodec.ConvertMacroV17(
+                            output = JsonConvert.SerializeObject(new JsonMacroBs17(
                                 text_Score.Lines,
                                 appendage,
                                 textb_SongName.Text,
@@ -622,7 +622,7 @@ namespace MilishitaMacro {
                                         if (macro == null) throw new JsonException();
                                         JsonMacroBs13.class_Primitive[]?ctrls = macro.Primitives;
                                         if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
-                                        macro.Primitives = MacroCodec.ChangeAppendage(ctrls, appendage);
+                                        macro.Primitives = MacroCodec.ChangeAppendage(macro, appendage);
                                         so = JsonConvert.SerializeObject(macro);
                                     }
                                     break;
@@ -634,7 +634,7 @@ namespace MilishitaMacro {
                                         if (macro == null) throw new JsonException();
                                         JsonMacroBs17.class_ControlSchemes.class_GameControls[]?ctrls = macro.ControlSchemes[0].GameControls;
                                         if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
-                                        macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(ctrls, appendage);
+                                        macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(macro, appendage);
                                         so = JsonConvert.SerializeObject(macro);
                                     }
                                     break;
@@ -661,21 +661,18 @@ namespace MilishitaMacro {
                             IEnumerable<string> RL(TextReader tr) {
                                 for (string?line; (line = tr.ReadLine()) != null;) yield return line;
                             }
+                            object macro;
                             switch (settings.version) {
                                 default: fr.Close(); throw new Exception("Invalid macro version.");
-                                case (int)MacroVersion.Value.BluestacksParser13: {
-                                        JsonMacroBs13 macro = MacroCodec.ConvertMacroV13(RL(fr), appendage, songname, ref settings);
-                                        fr.Close();
-                                        so = JsonConvert.SerializeObject(macro);
-                                    }
+                                case (int)MacroVersion.Value.BluestacksParser13:
+                                    macro = new JsonMacroBs13(RL(fr), appendage, songname, ref settings);
                                     break;
-                                case (int)MacroVersion.Value.BluestacksParser17: {
-                                        JsonMacroBs17 macro = MacroCodec.ConvertMacroV17(RL(fr), appendage, songname, ref settings);
-                                        fr.Close();
-                                        so = JsonConvert.SerializeObject(macro);
-                                    }
+                                case (int)MacroVersion.Value.BluestacksParser17:
+                                    macro = new JsonMacroBs17(RL(fr), appendage, songname, ref settings);
                                     break;
                             }
+                            fr.Close();
+                            so = JsonConvert.SerializeObject(macro);
                         }
 
                         StreamWriter fw = new StreamWriter(new FileStream(f_cfg, FileMode.Create));

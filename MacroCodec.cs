@@ -210,51 +210,14 @@ namespace MilishitaMacro {
         public int ScoreIndex;
         public int TrackCount;
     }
-    class JsonAppendage {
-        public struct Tap {
-            public readonly double X, Y;
-            public readonly string Key;
-            public Tap(double x, double y, string key) { X = x; Y = y; Key = key; }
-        }
-        public struct Zoom {
-            public readonly double X1, Y1, X2, Y2;
-            public readonly string KeyIn, KeyOut;
-            public Zoom(double x1, double y1, double x2, double y2, string keyin, string keyout) {
-                X1 = x1; Y1 = y1; X2 = x2; Y2 = y2; KeyIn = keyin; KeyOut = keyout;
-            }
-        }
-        public struct Repeat {
-            public readonly double X, Y;
-            public readonly int Count, Delay;
-            public readonly string Key;
-            public Repeat(double x, double y, int count, int delay, string key) {
-                X = x; Y = y; Count = count; Delay = delay; Key = key;
-            }
-        }
-        public struct Combo {
-            public readonly string Key;
-            public readonly MacroCommand[] Events;
-            public Combo(string key, MacroCommand[] events) { Key = key; Events = events; }
-        }
-        public Tap[] tap;
-        public Zoom[] zoom;
-        public Repeat[] repeat;
-        public Combo[] combo;
-        public JsonAppendage() {
-            tap = new Tap[0];
-            zoom = new Zoom[0];
-            repeat = new Repeat[0];
-            combo = new Combo[0];
-        }
-        public JsonAppendage(Tap[] new_tap, Zoom[] new_zoom, Repeat[] new_repeat, Combo[] new_combo) {
-            tap = new_tap;
-            zoom = new_zoom;
-            repeat = new_repeat;
-            combo = new_combo;
-        }
+    interface GameControlItemContainer<ItemType, ComboItemType> {
+        public ItemType[] getData();
+        public ItemType makeTap(JsonAppendage.Tap tap);
+        public ItemType makeZoom(JsonAppendage.Zoom zoom);
+        public ItemType makeRepeat(JsonAppendage.Repeat repeat);
+        public ItemType makeCombo(JsonAppendage.Combo combo);
     }
-
-    partial class MacroCodec {
+    class MacroCodec {
         class StateTimeline {
             struct int2 {
                 public readonly int start, end;
@@ -263,8 +226,8 @@ namespace MilishitaMacro {
             LinkedList<int2> timestamp = new LinkedList<int2>();
 
             public void Insert(int _t_s, int _t_e) {
-                LinkedListNode<int2>?i0 = timestamp.Last;
-                for (;;) {
+                LinkedListNode<int2>? i0 = timestamp.Last;
+                for (; ; ) {
                     if (i0 == null) {
                         timestamp.AddFirst(new int2(_t_s, _t_e));
                         break;
@@ -278,7 +241,7 @@ namespace MilishitaMacro {
             }
 
             public bool IsIn(int _t) {
-                for (LinkedListNode<int2>?i0 = timestamp.Last; i0 != null && i0.Value.end >= _t; i0 = i0.Previous) {
+                for (LinkedListNode<int2>? i0 = timestamp.Last; i0 != null && i0.Value.end >= _t; i0 = i0.Previous) {
                     if (i0.Value.start <= _t) return true;
                 }
                 return false;
@@ -309,7 +272,7 @@ namespace MilishitaMacro {
             throw new Exception($"Invalid timestamp: \"{_t}\".");
         }
 
-        static int FromTicksToMilisecond(int _t, JsonScoreMltd.class_Conductor[]_tempo) {
+        static int FromTicksToMilisecond(int _t, JsonScoreMltd.class_Conductor[] _tempo) {
             const double tempo_const = 96;
             int time = 0;
             IEnumerator<JsonScoreMltd.class_Conductor> tems = _tempo.OrderBy(u => u.Ticks).GetEnumerator();
@@ -324,14 +287,14 @@ namespace MilishitaMacro {
         }
 
         static public IEnumerable<string> FromScoreMltd(JsonScoreMltd score, int n_diff) {
-            JsonScoreMltd.class_Conductor[]?conductors = score.Conductors;
+            JsonScoreMltd.class_Conductor[]? conductors = score.Conductors;
             if (conductors == null) throw new JsonException("BPM information is missing.");
-            JsonScoreMltd.class_Note[]?notes = score.Notes;
+            JsonScoreMltd.class_Note[]? notes = score.Notes;
             if (notes == null) throw new JsonException("Notes information is missing.");
             string FromSingleNote(JsonScoreMltd.class_Note note) {
                 string time = FromTicksToMilisecond(note.Ticks, conductors).ToString();
                 string x_nobrac = (note.EndX + 1).ToString();
-                string x = x_nobrac.Length == 1 ? x_nobrac : $"({x_nobrac})" ;
+                string x = x_nobrac.Length == 1 ? x_nobrac : $"({x_nobrac})";
                 return time + ',' + x;
             }
 
@@ -346,17 +309,15 @@ namespace MilishitaMacro {
                 string dexterity_suffix;
                 string dex_first;
                 if (IsLeft(note.EndX)) {
-                    if (Handbusy[0].IsIn(note.Ticks))
-                        { dexterity = 1; dexterity_suffix = "D"; dex_first = "D"; }
+                    if (Handbusy[0].IsIn(note.Ticks)) { dexterity = 1; dexterity_suffix = "D"; dex_first = "D"; }
                     else { dexterity = 0; dexterity_suffix = "S"; dex_first = ""; }
                 }
                 else {
-                    if (Handbusy[1].IsIn(note.Ticks))
-                        { dexterity = 0; dexterity_suffix = "S"; dex_first = "S"; }
+                    if (Handbusy[1].IsIn(note.Ticks)) { dexterity = 0; dexterity_suffix = "S"; dex_first = "S"; }
                     else { dexterity = 1; dexterity_suffix = "D"; dex_first = ""; }
                 }
                 if (note.FollowingNotes == null) {
-                    string note_type = 
+                    string note_type =
                         note.Type == 100 ? "!" :
                         note.FlickDirection == 1 ? "L" :
                         note.FlickDirection == 2 ? "U" :
@@ -365,7 +326,7 @@ namespace MilishitaMacro {
                     Handbusy[dexterity].Insert(note.Ticks, note.Ticks + 5);
                 }
                 else {
-                    string note_type = 
+                    string note_type =
                         note.Type == 100 ? "!" :
                         note.FlickDirection == 1 ? "L" :
                         note.FlickDirection == 2 ? "U" :
@@ -386,8 +347,8 @@ namespace MilishitaMacro {
                 }
             }
         }
-        
-        static MacroCommand[][] ParseLines(IEnumerable<string> lines, ref CodecSettings settings) {
+
+        public static MacroCommand[][] ParseLines(IEnumerable<string> lines, ref CodecSettings settings) {
             List<MacroCommand>[] command2 = { new List<MacroCommand>(0x400), new List<MacroCommand>(0x400) };
 
             ref DiffName diff = ref CodecSettings.diffs[settings.nDiff];
@@ -425,7 +386,9 @@ namespace MilishitaMacro {
                                         break;
                                     case 'l': case 'L': type = 1; goto CASE_FLICK;
                                     case 'u': case 'U': type = 2; goto CASE_FLICK;
-                                    case 'r': case 'R': type = 3;
+                                    case 'r':
+                                    case 'R':
+                                        type = 3;
                                     CASE_FLICK:
                                         {
                                             double x_flick = diff.x_flick[type];
@@ -569,7 +532,7 @@ namespace MilishitaMacro {
             //desync management 2: linear compensation
             foreach (List<MacroCommand> command1 in commandN) {
                 int n_delay = 0;
-                MacroCommand?mc = command1.FirstOrDefault();
+                MacroCommand? mc = command1.FirstOrDefault();
                 if (mc == null) continue;
                 foreach (MacroCommand mc_next in command1.Skip(1)) {
                     switch (mc.type) {
@@ -588,7 +551,7 @@ namespace MilishitaMacro {
                     mc = mc_next;
                 }
             }
-            
+
             int time_init = int.MaxValue, time_exit = 0;
             foreach (List<MacroCommand> command1 in commandN) {
                 if (command1.Count > 0) {
@@ -612,7 +575,34 @@ namespace MilishitaMacro {
                 foreach (MacroCommand c in command1)
                     c.time -= time_init;
 
-            return commandN.ConvertAll(list => list.ToArray()).ToArray();
+            return commandN.AsEnumerable().Select((it, n) => it.ToArray()).ToArray();
         }
+
+        public static void AddAppendage<ItemType, ComboItemType>(GameControlItemContainer<ItemType, ComboItemType> container, JsonAppendage app, int n_noapp) {
+            ItemType[] output = container.getData();
+            int index = n_noapp;
+            foreach (JsonAppendage.Tap tap in app.tap)
+                output[index++] = container.makeTap(tap);
+            foreach (JsonAppendage.Zoom zoom in app.zoom)
+                output[index++] = container.makeZoom(zoom);
+            foreach (JsonAppendage.Repeat repeat in app.repeat)
+                output[index++] = container.makeRepeat(repeat);
+            foreach (JsonAppendage.Combo combo in app.combo)
+                output[index++] = container.makeCombo(combo);
+        }
+        public static ItemType[] ChangeAppendage<ItemType, ComboItemType>(GameControlItemContainer<ItemType, ComboItemType> container, JsonAppendage app) {
+            ItemType[] input = container.getData();
+            int n_noapp = Array.FindIndex(input, p => !(p is ComboItemType));
+            if (n_noapp == -1) n_noapp = input.Length;
+
+            int output_size = n_noapp + app.tap.Length + app.zoom.Length + app.repeat.Length + app.combo.Length;
+            ItemType[] output = new ItemType[output_size];
+
+            Array.Copy(input, output, n_noapp);
+            AddAppendage(container, app, n_noapp);
+
+            return output;
+        }
+        
     }
 }
