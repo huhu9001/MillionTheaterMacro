@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MilishitaMacro {
+﻿namespace MilishitaMacro {
     class JsonAppendage {
         public class Tap {
             public readonly double X, Y;
@@ -40,12 +34,6 @@ namespace MilishitaMacro {
             zoom = new Zoom[0];
             repeat = new Repeat[0];
             combo = new Combo[0];
-        }
-        public JsonAppendage(Tap[] new_tap, Zoom[] new_zoom, Repeat[] new_repeat, Combo[] new_combo) {
-            tap = new_tap;
-            zoom = new_zoom;
-            repeat = new_repeat;
-            combo = new_combo;
         }
     }
 }

@@ -210,13 +210,7 @@ namespace MilishitaMacro {
         public int ScoreIndex;
         public int TrackCount;
     }
-    interface GameControlItemContainer<ItemType, ComboItemType> {
-        public ItemType[] getData();
-        public ItemType makeTap(JsonAppendage.Tap tap);
-        public ItemType makeZoom(JsonAppendage.Zoom zoom);
-        public ItemType makeRepeat(JsonAppendage.Repeat repeat);
-        public ItemType makeCombo(JsonAppendage.Combo combo);
-    }
+    
     class MacroCodec {
         class StateTimeline {
             struct int2 {
@@ -225,15 +219,15 @@ namespace MilishitaMacro {
             }
             LinkedList<int2> timestamp = new LinkedList<int2>();
 
-            public void Insert(int _t_s, int _t_e) {
+            public void Insert(int t_start, int t_end) {
                 LinkedListNode<int2>? i0 = timestamp.Last;
                 for (; ; ) {
                     if (i0 == null) {
-                        timestamp.AddFirst(new int2(_t_s, _t_e));
+                        timestamp.AddFirst(new int2(t_start, t_end));
                         break;
                     }
-                    if (i0.Value.end <= _t_e) {
-                        timestamp.AddAfter(i0, new int2(_t_s, _t_e));
+                    if (i0.Value.end <= t_end) {
+                        timestamp.AddAfter(i0, new int2(t_start, t_end));
                         break;
                     }
                     i0 = i0.Previous;
@@ -332,10 +326,9 @@ namespace MilishitaMacro {
                         note.FlickDirection == 2 ? "U" :
                         note.FlickDirection == 3 ? "R" : "+";
                     yield return FromSingleNote(note) + dex_first + note_type;
-                    for (int i1 = 0; i1 < note.FollowingNotes.Length - 1; ++i1) {
-                        JsonScoreMltd.class_Note note_following = note.FollowingNotes[i1];
+                    foreach (JsonScoreMltd.class_Note note_following in note.FollowingNotes.SkipLast(1)) {
                         string dex_following = (IsLeft(note_following.EndX) ? 0 : 1) == dexterity ? "" : dexterity_suffix;
-                        yield return $"{FromSingleNote(note.FollowingNotes[i1])}{dex_following}=";
+                        yield return $"{FromSingleNote(note_following)}{dex_following}=";
                     }
                     JsonScoreMltd.class_Note note_last = note.FollowingNotes.Last();
                     string dex_last = (IsLeft(note_last.EndX) ? 0 : 1) == dexterity ? "" : dexterity_suffix;
@@ -577,32 +570,5 @@ namespace MilishitaMacro {
 
             return commandN.AsEnumerable().Select((it, n) => it.ToArray()).ToArray();
         }
-
-        public static void AddAppendage<ItemType, ComboItemType>(GameControlItemContainer<ItemType, ComboItemType> container, JsonAppendage app, int n_noapp) {
-            ItemType[] output = container.getData();
-            int index = n_noapp;
-            foreach (JsonAppendage.Tap tap in app.tap)
-                output[index++] = container.makeTap(tap);
-            foreach (JsonAppendage.Zoom zoom in app.zoom)
-                output[index++] = container.makeZoom(zoom);
-            foreach (JsonAppendage.Repeat repeat in app.repeat)
-                output[index++] = container.makeRepeat(repeat);
-            foreach (JsonAppendage.Combo combo in app.combo)
-                output[index++] = container.makeCombo(combo);
-        }
-        public static ItemType[] ChangeAppendage<ItemType, ComboItemType>(GameControlItemContainer<ItemType, ComboItemType> container, JsonAppendage app) {
-            ItemType[] input = container.getData();
-            int n_noapp = Array.FindIndex(input, p => !(p is ComboItemType));
-            if (n_noapp == -1) n_noapp = input.Length;
-
-            int output_size = n_noapp + app.tap.Length + app.zoom.Length + app.repeat.Length + app.combo.Length;
-            ItemType[] output = new ItemType[output_size];
-
-            Array.Copy(input, output, n_noapp);
-            AddAppendage(container, app, n_noapp);
-
-            return output;
-        }
-        
     }
 }

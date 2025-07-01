@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
 
 namespace MilishitaMacro {
-    using Container = GameControlItemContainer<JsonMacroBs13.class_Primitive, JsonMacroBs13.class_Primitive_Combo>;
-    class JsonMacroBs13:Container {
+    class JsonMacroBs13
+        :GameControlItemContainer<JsonMacroBs13.class_Primitive, JsonMacroBs13.class_Primitive_Combo>
+    {
         /// Structure
         public class class_MetaData {
             public string ParserVersion = "13";
@@ -128,8 +129,8 @@ namespace MilishitaMacro {
         }
         public class_Strings Strings = new class_Strings();
 
-        class_Primitive[] Container.getData() => Primitives!;
-        class_Primitive Container.makeTap(JsonAppendage.Tap tap) =>
+        override protected ref class_Primitive[]? data() => ref Primitives;
+        override protected class_Primitive_Tap makeTap(JsonAppendage.Tap tap) =>
             new class_Primitive_Tap {
                 type = "Tap, Bluestacks",
 
@@ -146,7 +147,7 @@ namespace MilishitaMacro {
                 EnableCondition = "",
                 IsVisibleInOverlay = true,
             };
-        class_Primitive Container.makeZoom(JsonAppendage.Zoom zoom) =>
+        override protected class_Primitive_Zoom makeZoom(JsonAppendage.Zoom zoom) =>
             new class_Primitive_Zoom {
                 type = "Tap, Bluestacks",
 
@@ -169,7 +170,7 @@ namespace MilishitaMacro {
                 EnableCondition = "",
                 IsVisibleInOverlay = true,
             };
-        class_Primitive Container.makeRepeat(JsonAppendage.Repeat repeat) =>
+        override protected class_Primitive_Repeat makeRepeat(JsonAppendage.Repeat repeat) =>
             new class_Primitive_Repeat {
                 type = "Tap, Bluestacks",
 
@@ -188,10 +189,9 @@ namespace MilishitaMacro {
                 EnableCondition = "",
                 IsVisibleInOverlay = true,
             };
-        class_Primitive Container.makeCombo(JsonAppendage.Combo combo) {
+        override protected class_Primitive_Combo makeCombo(JsonAppendage.Combo combo) {
             var e = new class_Primitive_Combo.class_Event[combo.Events.Length];
-            for (int i = 0; i < combo.Events.Length; ++i) {
-                MacroCommand c = combo.Events[i];
+            foreach ((int i, MacroCommand c) in combo.Events.Index()) {
                 string typename;
                 switch (c.type) {
                     default: continue;
@@ -235,12 +235,10 @@ namespace MilishitaMacro {
 
             string song_diff_name = song_name + '_' + CodecSettings.diffs[settings.nDiff].shortName;
 
-            for (int i = 0; i < commands.Length; ++i) {
-                MacroCommand[] cs = commands[i];
+            foreach ((int i, MacroCommand[] cs) in commands.Index()) {
                 JsonMacroBs13.class_Primitive_Combo.class_Event[] e =
                     new JsonMacroBs13.class_Primitive_Combo.class_Event[cs.Length];
-                for (int i1 = 0; i1 < cs.Length; ++i1) {
-                    MacroCommand c = cs[i1];
+                foreach ((int i1, MacroCommand c) in cs.Index()) {
                     string typename;
                     switch (c.type) {
                         default: continue;
@@ -273,7 +271,7 @@ namespace MilishitaMacro {
                 };
             }
 
-            MacroCodec.AddAppendage(this, appendage, commands.Length);
+            AddAppendage(appendage, commands.Length);
         }
     }
 }

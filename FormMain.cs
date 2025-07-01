@@ -6,9 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace MilishitaMacro {
     public partial class FormMain : Form {
-        private const string BT_SAVE = "Save";
-        private const string BT_MAKE = "Make";
-
         SongName[] songs;
         JsonAppendage appendage;
 
@@ -17,6 +14,10 @@ namespace MilishitaMacro {
 
         bool b_changed_songname;
         bool settings_changed;
+
+        bool unsaved_changes;
+        Font font_save_regular;
+        Font font_save_bold;
 
         Task?task_current;
 
@@ -116,14 +117,23 @@ namespace MilishitaMacro {
             }
             if (appendage.tap.Length == 0 && appendage.zoom.Length == 0 && appendage.repeat.Length == 0 && appendage.combo.Length != 0)
                 appendage.tap = new JsonAppendage.Tap[] { new JsonAppendage.Tap(25, 25, "") };
+
+            unsaved_changes = false;
+            font_save_regular = b_SaveTXT.Font;
+            font_save_bold = new Font(font_save_regular, FontStyle.Bold);
         }
         
         private void form_main_FormClosing(object sender, FormClosingEventArgs e) {
+            if (unsaved_changes && !ConfirmUnsaved()) {
+                e.Cancel = true;
+                return;
+            }
+
             if (b_changed_songname) try {
                 StreamWriter saved_songs = new StreamWriter(new FileStream("songs.txt", FileMode.Create));
                 int songs_size = songs.Length;
                 saved_songs.WriteLine(songs_size.ToString());
-                for(int i0 = 0; i0 < songs_size; ++i0) {
+                for (int i0 = 0; i0 < songs_size; ++i0) {
                     saved_songs.WriteLine(songs[i0].fullName);
                     saved_songs.WriteLine(songs[i0].urlName);
                 }
@@ -185,6 +195,69 @@ namespace MilishitaMacro {
             tabC_main.Enabled = true;
         }
 
+        void UnsavedChange(bool value) {
+            if (value) {
+                unsaved_changes = true;
+                b_SaveTXT.Text = "*Save";
+                b_SaveTXT.Font = font_save_bold;
+            }
+            else {
+                unsaved_changes = false;
+                b_SaveTXT.Text = "Save";
+                b_SaveTXT.Font = font_save_regular;
+            }
+        }
+
+        private bool ConfirmUnsaved() {
+            return
+                MessageBox.Show(
+                    "Discard unsaved changes?",
+                    "Unsaved changes",
+                    MessageBoxButtons.YesNo) == DialogResult.Yes;
+        }
+
+        private void openAss(string fass) {
+            try {
+                Match m_u;
+                List<string> s_ass = new List<string>();
+                StreamReader sr_ass = new StreamReader(new FileStream(fass, FileMode.Open, FileAccess.Read));
+                for (string? line; (line = sr_ass.ReadLine()) != null;) {
+                    m_u = Regex.Match(
+                        line,
+                        "(?:Dialogue|Comment):[^,]*,([^,]*),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)");
+                    if (m_u.Success) {
+                        s_ass.Add($"{m_u.Groups[1]},{m_u.Groups[2]}");
+                    }
+                }
+                sr_ass.Close();
+                text_Score.Lines = s_ass.ToArray();
+
+                m_u = Regex.Match(fass, "\\\\([^\\\\_]+)_([^\\\\_]+)\\.txt$");
+                if (m_u.Success) {
+                    textb_SongName.Text = m_u.Groups[1].Value;
+                    switch (m_u.Groups[2].Value) {
+                        default:
+                            combo_difficulty.SelectedIndex = -1; break;
+                        case "2s":
+                            combo_difficulty.SelectedIndex = 0; break;
+                        case "2p":
+                            combo_difficulty.SelectedIndex = 1; break;
+                        case "2m":
+                            combo_difficulty.SelectedIndex = 2; break;
+                        case "4m":
+                            combo_difficulty.SelectedIndex = 3; break;
+                        case "6m":
+                            combo_difficulty.SelectedIndex = 4; break;
+                        case "mm":
+                            combo_difficulty.SelectedIndex = 5; break;
+                    }
+                }
+
+                UnsavedChange(true);
+            }
+            catch (Exception err) { tb_output.Text = err.Message; }
+        }
+
         private void button_Make_Click(object sender, EventArgs e) {
             int index_diff_selected;
             if ((index_diff_selected = combo_difficulty.SelectedIndex) == -1) return;
@@ -235,12 +308,12 @@ namespace MilishitaMacro {
                     sw_save.Close();
                 }
                 catch (Exception err) { tb_output.AppendText(err.Message); }
-                
-                button_Make.Text = BT_MAKE;
             }
         }
 
         private void button_Download_Click(object sender, EventArgs e) {
+            if (unsaved_changes && !ConfirmUnsaved()) return;
+
             if (task_current != null) return;
             int index_song_selected, index_diff_selected;
             if ((index_song_selected = combo_SongName.SelectedIndex) == -1) return;
@@ -286,8 +359,7 @@ namespace MilishitaMacro {
                         tb_output.AppendText("Success.");
                         EnableInput();
 
-                        button_Make.Text = $"{BT_MAKE}*";
-                        b_SaveTXT.Text = $"{BT_SAVE}*";
+                        UnsavedChange(true);
                         tabC_main.SelectedIndex = 0;
                     }));
                 }
@@ -336,11 +408,12 @@ namespace MilishitaMacro {
                     MatchCollection m_uc = Regex.Matches(m_u.Value, "(?<=<li>)[\\s\\S]*?(?=</li>)");
                     songs = new SongName[m_uc.Count];
                     Match m_u_1, m_u_2;
-                    for (int i0 = 0; i0 < m_uc.Count; ++i0) {
-                        m_u_1 = Regex.Match(m_uc[i0].Value, "(?<=<h3 class=\"title\">).*?(?=</h3>)");
+                    //
+                    foreach ((int i0, Match match) in m_uc.Index()) {
+                        m_u_1 = Regex.Match(match.Value, "(?<=<h3 class=\"title\">).*?(?=</h3>)");
                         if (!m_u_1.Success) throw new Exception($"Song {i0} do not have a name.");
                         m_u_2 = Regex.Match(
-                            m_uc[i0].Value,
+                            match.Value,
                             "(?<=<a href=\"/musics/).*?(?=/\\d+\">\\d+</a>)");
                         if (!m_u_1.Success) throw new Exception($"Song \"{m_u_1.Value}\" do not have a URL.");
                         songs[i0] = new SongName(m_u_1.Value, m_u_2.Value);
@@ -364,52 +437,9 @@ namespace MilishitaMacro {
             task_current.Start();
         }
 
-        private void openAss(string fass) {
-            try {
-                Match m_u;
-                List<string> s_ass = new List<string>();
-                StreamReader sr_ass = new StreamReader(new FileStream(fass, FileMode.Open, FileAccess.Read));
-                for (string?line; (line = sr_ass.ReadLine()) != null; ) {
-                    m_u = Regex.Match(
-                        line,
-                        "(?:Dialogue|Comment):[^,]*,([^,]*),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)");
-                    if (m_u.Success) {
-                        s_ass.Add($"{m_u.Groups[1]},{m_u.Groups[2]}");
-                    }
-                }
-                sr_ass.Close();
-                text_Score.Lines = s_ass.ToArray();
-
-                m_u = Regex.Match(fass, "\\\\([^\\\\_]+)_([^\\\\_]+)\\.txt$");
-                if (m_u.Success)
-                {
-                    textb_SongName.Text = m_u.Groups[1].Value;
-                    switch (m_u.Groups[2].Value)
-                    {
-                        default:
-                            combo_difficulty.SelectedIndex = -1; break;
-                        case "2s":
-                            combo_difficulty.SelectedIndex = 0; break;
-                        case "2p":
-                            combo_difficulty.SelectedIndex = 1; break;
-                        case "2m":
-                            combo_difficulty.SelectedIndex = 2; break;
-                        case "4m":
-                            combo_difficulty.SelectedIndex = 3; break;
-                        case "6m":
-                            combo_difficulty.SelectedIndex = 4; break;
-                        case "mm":
-                            combo_difficulty.SelectedIndex = 5; break;
-                    }
-                }
-
-                button_Make.Text = $"{BT_MAKE}*";
-                b_SaveTXT.Text = $"{BT_SAVE}*";
-            }
-            catch (Exception err) { tb_output.Text = err.Message; }
-        }
-
         private void b_ass_Click(object sender, EventArgs e) {
+            if (unsaved_changes && !ConfirmUnsaved()) return;
+
             OpenFileDialog d_load = new OpenFileDialog {
                 Filter = "ASS files (*.ass)|*.ass|All files (*.*)|*.*",
                 InitialDirectory = dir_ASS,
@@ -427,6 +457,8 @@ namespace MilishitaMacro {
         }
 
         private void b_video_Click(object sender, EventArgs e) {
+            if (unsaved_changes && !ConfirmUnsaved()) return;
+
             const string FNAME_VIDEOPARSER = "MilishitaVideoParser";
             string dir_parser = tb_vidparserDir.Text;
             string fexe;
@@ -494,17 +526,12 @@ namespace MilishitaMacro {
         }
 
         private void textScore_Change(object sender, EventArgs e) {
-            if (text_Score.Text == "") {
-                b_SaveTXT.Text = BT_SAVE;
-                button_Make.Text = BT_MAKE;
-            }
-            else {
-                b_SaveTXT.Text = $"{BT_SAVE}*";
-                button_Make.Text = $"{BT_MAKE}*";
-            }
+            UnsavedChange(text_Score.Text != "");
         }
 
         private void b_LoadText_Click(object sender, EventArgs e) {
+            if (unsaved_changes && !ConfirmUnsaved()) return;
+
             OpenFileDialog d_load = new OpenFileDialog {
                 Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*",
                 InitialDirectory = dir_TXT,
@@ -546,8 +573,7 @@ namespace MilishitaMacro {
                         }
                     }
 
-                    button_Make.Text = $"{BT_MAKE}*";
-                    b_SaveTXT.Text = BT_SAVE;
+                    UnsavedChange(false);
                 }
                 catch (Exception err) { tb_output.Text = err.Message; }
             }
@@ -577,7 +603,7 @@ namespace MilishitaMacro {
                     sw_save.Write(text_Score.Text);
                     sw_save.Close();
 
-                    b_SaveTXT.Text = BT_SAVE;
+                    UnsavedChange(false);
                 }
                 catch (Exception err) { tb_output.Text = err.Message; }
             }
@@ -620,21 +646,19 @@ namespace MilishitaMacro {
                                             SerializationBinder = new JsonMacroBs13.PrimitiveTypesBinder(),
                                         });
                                         if (macro == null) throw new JsonException();
-                                        JsonMacroBs13.class_Primitive[]?ctrls = macro.Primitives;
-                                        if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
-                                        macro.Primitives = MacroCodec.ChangeAppendage(macro, appendage);
+                                        if (macro.ChangeAppendage(appendage) == null)
+                                            throw new Exception($"{f_cfg} has invalid format.");
                                         so = JsonConvert.SerializeObject(macro);
                                     }
                                     break;
                                 case (int)MacroVersion.Value.BluestacksParser17: {
                                         JsonMacroBs17?macro = JsonConvert.DeserializeObject<JsonMacroBs17>(si, new JsonSerializerSettings {
                                             TypeNameHandling = TypeNameHandling.All,
-                                            SerializationBinder = new JsonMacroBs17.class_ControlSchemes.GameControlsTypesBinder(),
+                                            SerializationBinder = new JsonMacroBs17.GameControlsTypesBinder(),
                                         });
                                         if (macro == null) throw new JsonException();
-                                        JsonMacroBs17.class_ControlSchemes.class_GameControls[]?ctrls = macro.ControlSchemes[0].GameControls;
-                                        if (ctrls == null) throw new Exception($"{f_cfg} has invalid format.");
-                                        macro.ControlSchemes[0].GameControls = MacroCodec.ChangeAppendage(macro, appendage);
+                                        if (macro.ChangeAppendage(appendage) == null)
+                                            throw new Exception($"{f_cfg} has invalid format.");
                                         so = JsonConvert.SerializeObject(macro);
                                     }
                                     break;
@@ -722,6 +746,8 @@ namespace MilishitaMacro {
             }
         }
 
-        private void SettingControlsChanged(object sender, EventArgs e) { settings_changed = true; }
+        private void SettingControlsChanged(object sender, EventArgs e) {
+            settings_changed = true;
+        }
     }
 }
