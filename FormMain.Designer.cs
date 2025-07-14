@@ -560,7 +560,6 @@
             combo_difficulty.Name = "combo_difficulty";
             combo_difficulty.Size = new Size(201, 32);
             combo_difficulty.TabIndex = 10;
-            combo_difficulty.SelectedIndexChanged += textScore_Change;
             // 
             // pgbar_main
             // 

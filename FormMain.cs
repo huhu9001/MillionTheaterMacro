@@ -331,7 +331,7 @@ namespace MilishitaMacro {
                             songs[index_song_selected].urlName
                         }/{
                             CodecSettings.diffs[index_diff_selected].urlName
-                        }"), HttpCompletionOption.ResponseHeadersRead);
+                        }/"), HttpCompletionOption.ResponseHeadersRead);
                     
                     Invoke(new Action(() => {
                         tb_output.AppendText($"Downloading...{Environment.NewLine}");
