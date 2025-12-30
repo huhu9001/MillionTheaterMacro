@@ -227,8 +227,8 @@ namespace MilishitaMacro {
             IEnumerable<string> scores,
             JsonAppendage appendage,
             string song_name,
-            ref CodecSettings settings) {
-            MacroCommand[][] commands = MacroCodec.ParseLines(scores, ref settings);
+            CodecSettings settings) {
+            MacroCommand[][] commands = MacroCodec.ParseLines(scores, settings);
 
             int n_con = commands.Length + appendage.tap.Length + appendage.zoom.Length + appendage.repeat.Length + appendage.combo.Length;
             Primitives = new JsonMacroBs13.class_Primitive[n_con];

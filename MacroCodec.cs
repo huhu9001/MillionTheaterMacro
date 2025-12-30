@@ -12,7 +12,7 @@ namespace MilishitaMacro {
         }
     }
 
-    struct MacroVersion {
+    class MacroVersion {
         public enum Value { BluestacksParser13, BluestacksParser17 }
         public readonly int value;
         public string name { get; }
@@ -20,7 +20,7 @@ namespace MilishitaMacro {
             value = new_value; name = new_name;
         }
     }
-    struct DiffName {
+    class DiffName {
         public string displayName { get; }
 
         public readonly string urlName;
@@ -147,7 +147,7 @@ namespace MilishitaMacro {
             }
         }
     }
-    struct SongName {
+    class SongName {
         public string fullName { get; }
         public string urlName { get; }
 
@@ -157,7 +157,7 @@ namespace MilishitaMacro {
         }
     }
 
-    struct CodecSettings {
+    class CodecSettings {
         public static readonly MacroVersion[] versions = {
             new MacroVersion((int)MacroVersion.Value.BluestacksParser17, "Bluestacks v17 (5.21.212.1027)"),
             new MacroVersion((int)MacroVersion.Value.BluestacksParser13, "Bluestacks v13 (4.170.10.1001)"),
@@ -341,10 +341,10 @@ namespace MilishitaMacro {
             }
         }
 
-        public static MacroCommand[][] ParseLines(IEnumerable<string> lines, ref CodecSettings settings) {
+        public static MacroCommand[][] ParseLines(IEnumerable<string> lines, CodecSettings settings) {
             List<MacroCommand>[] command2 = { new List<MacroCommand>(0x400), new List<MacroCommand>(0x400) };
 
-            ref DiffName diff = ref CodecSettings.diffs[settings.nDiff];
+            DiffName diff = CodecSettings.diffs[settings.nDiff];
 
             //notes to commands
             foreach (string line in lines) {

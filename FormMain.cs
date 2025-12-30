@@ -292,14 +292,14 @@ namespace MilishitaMacro {
                                 text_Score.Lines,
                                 appendage,
                                 textb_SongName.Text,
-                                ref settings));
+                                settings));
                             break;
                         case (int)MacroVersion.Value.BluestacksParser17:
                             output = JsonConvert.SerializeObject(new JsonMacroBs17(
                                 text_Score.Lines,
                                 appendage,
                                 textb_SongName.Text,
-                                ref settings));
+                                settings));
                             break;
                     }
 
@@ -533,7 +533,7 @@ namespace MilishitaMacro {
             if (unsaved_changes && !ConfirmUnsaved()) return;
 
             OpenFileDialog d_load = new OpenFileDialog {
-                Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*",
+                Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*",
                 InitialDirectory = dir_TXT,
             };
             if (d_load.ShowDialog() == DialogResult.OK) {
@@ -588,7 +588,7 @@ namespace MilishitaMacro {
                     combo_difficulty.SelectedIndex == 3 ? "_4m" :
                     combo_difficulty.SelectedIndex == 4 ? "_6m" :
                     combo_difficulty.SelectedIndex == 5 ? "_mm" : ""),
-                Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*",
+                Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*",
                 InitialDirectory = dir_TXT,
             };
             if (d_save.ShowDialog() == DialogResult.OK) {
@@ -689,10 +689,10 @@ namespace MilishitaMacro {
                             switch (settings.version) {
                                 default: fr.Close(); throw new Exception("Invalid macro version.");
                                 case (int)MacroVersion.Value.BluestacksParser13:
-                                    macro = new JsonMacroBs13(RL(fr), appendage, songname, ref settings);
+                                    macro = new JsonMacroBs13(RL(fr), appendage, songname, settings);
                                     break;
                                 case (int)MacroVersion.Value.BluestacksParser17:
-                                    macro = new JsonMacroBs17(RL(fr), appendage, songname, ref settings);
+                                    macro = new JsonMacroBs17(RL(fr), appendage, songname, settings);
                                     break;
                             }
                             fr.Close();
